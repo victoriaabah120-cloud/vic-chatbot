@@ -1,6 +1,11 @@
 import os
+import uuid
 from dotenv import load_dotenv
 from groq import Groq
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
 
 load_dotenv()
 
@@ -8,20 +13,45 @@ client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-print("Welcome to Vic Chatbot! I am your AI assistant.")
+conversation_histories = {}
 
-conversation_history = []
 
-while True:
-    question = input("You: ")
+@app.get("/")
+def home():
+    return {"message": "Vic Chatbot API is running!"}
 
-    if question.lower() == "exit":
-        print("Vic Chatbot: Goodbye!")
-        break
 
-    conversation_history.append({
+class ChatRequest(BaseModel):
+    conversation_id: str
+    message: str
+
+
+def create_conversation_id():
+    return str(uuid.uuid4())
+
+
+@app.post("/conversation")
+def create_conversation():
+    conversation_id = create_conversation_id()
+
+    conversation_histories[conversation_id] = []
+
+    return {
+        "conversation_id": conversation_id
+    }
+
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+
+    if request.conversation_id not in conversation_histories:
+        conversation_histories[request.conversation_id] = []
+
+    history = conversation_histories[request.conversation_id]
+
+    history.append({
         "role": "user",
-        "content": question
+        "content": request.message
     })
 
     response = client.chat.completions.create(
@@ -53,23 +83,24 @@ She is developing her skills through hands-on projects, including Vic Chatbot, a
 Victoria's professional goal is to become a skilled AI engineer capable of building useful AI-powered applications and intelligent software systems.
 
 Response style:
-- Keep normal answers clear, natural, and reasonably concise.
+- Keep answers clear, natural, and reasonably concise.
 - Give longer explanations when the user asks for more detail.
 - Do not automatically include unnecessary links.
 - If someone asks who owns or created Vic Chatbot, identify Victoria Abah.
 - Never invent a different owner, creator, company, or team for Vic Chatbot.
 """
             },
-            *conversation_history
+            *history
         ]
     )
 
     answer = response.choices[0].message.content
 
-    conversation_history.append({
+    history.append({
         "role": "assistant",
         "content": answer
     })
 
-    print("Vic Chatbot:", answer)
-    
+    return {
+        "message": answer
+    }
