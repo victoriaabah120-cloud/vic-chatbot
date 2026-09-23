@@ -2,10 +2,18 @@ import os
 import uuid
 from dotenv import load_dotenv
 from groq import Groq
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 
@@ -54,12 +62,13 @@ def chat(request: ChatRequest):
         "content": request.message
     })
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {
-                "role": "system",
-                "content": """
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
 You are Vic Chatbot, an AI assistant created and owned by Victoria Abah.
 
 About the creator:
@@ -89,10 +98,16 @@ Response style:
 - If someone asks who owns or created Vic Chatbot, identify Victoria Abah.
 - Never invent a different owner, creator, company, or team for Vic Chatbot.
 """
-            },
-            *history
-        ]
-    )
+                },
+                *history
+            ]
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong while generating the response."
+        )
 
     answer = response.choices[0].message.content
 
