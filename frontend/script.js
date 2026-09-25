@@ -6,6 +6,12 @@ const chat = document.getElementById("chat");
 
 sendButton.addEventListener("click", sendMessage);
 
+messageInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+
 async function sendMessage() {
     const message = messageInput.value;
 
@@ -28,8 +34,8 @@ async function sendMessage() {
 
     const data = await response.json();
 
-    chat.innerHTML += `<p class="user-message">You: ${message}</p>`;
-    chat.innerHTML += `<p class="vic-message">Vic: ${data.message}</p>`;
+    chat.innerHTML += `<p class="user-message">${message}</p>`;
+    chat.innerHTML += `<div class="vic-message">${marked.parse(data.message, { gfm: true })}</div>`;
 }
 
 let conversationId = null;

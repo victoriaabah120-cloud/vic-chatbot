@@ -7,6 +7,7 @@ body {
 
 #chat {
     min-height: 300px;
+    max-height: 500px;
     border: 1px solid #ccc;
     padding: 15px;
     margin-bottom: 15px;
@@ -22,4 +23,53 @@ body {
 #sendButton {
     padding: 10px 15px;
     cursor: pointer;
+}
+
+.user-message {
+    text-align: right;
+    background-color: #e3f2fd;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    margin-left: auto;
+}
+
+.vic-message {
+    text-align: left;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    margin-right: auto;
+}
+
+.user-message,
+.vic-message {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+/* Mobile phone styles */
+
+@media (max-width: 600px) {
+
+    body {
+        margin: 10px;
+        padding: 10px;
+    }
+
+    #messageInput {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #sendButton {
+        width: 100%;
+    }
+
+    .user-message,
+    .vic-message {
+        max-width: 90%;
+    }
 }
