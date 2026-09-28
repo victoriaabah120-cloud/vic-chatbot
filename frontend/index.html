@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Vic Chatbot</title>
 
     <link rel="stylesheet" href="style.css">
@@ -10,16 +11,64 @@
 
 <body>
 
-    <h1>Vic Chatbot</h1>
+    <!-- Authentication section -->
+    <div id="authSection">
 
-    <div id="chat"></div>
+        <h1>Vic Chatbot</h1>
 
-    <input id="messageInput" type="text" placeholder="Type your message...">
+        <h2>Welcome</h2>
 
-    <button id="sendButton">Send</button>
+        <input
+            id="emailInput"
+            type="email"
+            placeholder="Enter your email"
+        >
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="script.js"></script>
+        <input
+            id="passwordInput"
+            type="password"
+            placeholder="Enter your password"
+        >
+
+        <button id="signUpButton">
+            Sign Up
+        </button>
+
+        <button id="loginButton">
+            Log In
+        </button>
+
+        <p id="authMessage"></p>
+
+    </div>
+
+
+    <!-- Chat section -->
+    <div id="chatSection" style="display: none;">
+
+        <h1>Vic Chatbot</h1>
+
+        <button id="logoutButton">
+            Log Out
+        </button>
+
+        <div id="chat"></div>
+
+        <input
+            id="messageInput"
+            type="text"
+            placeholder="Type your message..."
+        >
+
+        <button id="sendButton">
+            Send
+        </button>
+
+    </div>
+
+
+    <!-- Our JavaScript -->
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>

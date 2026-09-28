@@ -1,75 +1,179 @@
 import os
+import uuid
+
 from dotenv import load_dotenv
 from groq import Groq
 
+from fastapi import FastAPI, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+
+from pydantic import BaseModel
+
+from supabase import create_client
+
+
 load_dotenv()
+
+
+SUPABASE_URL = os.getenv(
+    "SUPABASE_URL"
+)
+
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
+)
+
+
+app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-print("Welcome to Vic Chatbot! I am your AI assistant.")
 
-conversation_history = []
+conversation_histories = {}
 
-while True:
-    question = input("You: ")
 
-    if question.lower() == "exit":
-        print("Vic Chatbot: Goodbye!")
-        break
+@app.get("/")
+def home():
+    return {
+        "message": "Vic Chatbot API is running!"
+    }
 
-    conversation_history.append({
-        "role": "user",
-        "content": question
-    })
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {
-                "role": "system",
-                "content": """
-You are Vic Chatbot, an AI assistant created and owned by Victoria Abah.
+def get_current_user(
+    authorization: str = Header(None)
+):
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header missing."
+        )
 
-About the creator:
-- Name: Victoria Abah
-- Role: Founder, Creator, and Developer of Vic Chatbot
-- Location: Nigeria
-- Focus: Python, AI engineering, chatbot development, and technology
+    if not authorization.startswith(
+        "Bearer "
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header."
+        )
 
-About Vic Chatbot:
-- Name: Vic Chatbot
-- Type: AI assistant
-- Purpose: Help users through conversational answers
-- Creator and owner: Victoria Abah
-- Project: Vic Chatbot is an AI assistant created by Victoria Abah.
+    access_token = authorization.split(
+        " ",
+        1
+    )[1]
 
-About Victoria:
-Victoria Abah is the founder, creator, and developer of Vic Chatbot. She is a technology learner and aspiring AI engineer from Nigeria, focused on Python, artificial intelligence, AI engineering, chatbot development, and building practical technology solutions.
-
-She is developing her skills through hands-on projects, including Vic Chatbot, an AI assistant designed to provide users with helpful and conversational answers. Her learning journey includes Python programming, AI application development, API integration, backend development, Git and GitHub, and working with modern AI technologies.
-
-Victoria's professional goal is to become a skilled AI engineer capable of building useful AI-powered applications and intelligent software systems.
-
-Response style:
-- Keep normal answers clear, natural, and reasonably concise.
-- Give longer explanations when the user asks for more detail.
-- Do not automatically include unnecessary links.
-- If someone asks who owns or created Vic Chatbot, identify Victoria Abah.
-- Never invent a different owner, creator, company, or team for Vic Chatbot.
-"""
-            },
-            *conversation_history
-        ]
+    user_response = supabase.auth.get_user(
+        access_token
     )
 
-    answer = response.choices[0].message.content
+    return user_response.user
 
-    conversation_history.append({
+
+class ChatRequest(BaseModel):
+    conversation_id: str
+    message: str
+
+
+def create_conversation_id():
+    return str(uuid.uuid4())
+
+
+@app.post("/conversation")
+def create_conversation():
+    conversation_id = create_conversation_id()
+
+    conversation_histories[
+        conversation_id
+    ] = []
+
+    return {
+        "conversation_id":
+            conversation_id
+    }
+
+
+@app.post("/chat")
+def chat(
+    request: ChatRequest,
+    authorization: str = Header(None)
+):
+    user = get_current_user(
+        authorization
+    )
+
+    if request.conversation_id not in conversation_histories:
+        conversation_histories[
+            request.conversation_id
+        ] = []
+
+    history = conversation_histories[
+        request.conversation_id
+    ]
+
+    history.append({
+        "role": "user",
+        "content": request.message
+    })
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
+You are Vic Chatbot, an AI assistant created by Victoria Abah.
+
+Be helpful, friendly, clear, and conversational.
+
+Answer the user's questions accurately and explain things clearly when needed.
+
+When the user is learning programming, explain concepts step by step and make the explanation easy to understand.
+"""
+                },
+                *history
+            ]
+        )
+
+    except Exception as e:
+        print(
+            "Groq error:",
+            e
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong while generating the response."
+        )
+
+    answer = response.choices[
+        0
+    ].message.content
+
+    history.append({
         "role": "assistant",
         "content": answer
     })
 
-    print("Vic Chatbot:", answer)
-    
+    return {
+        "message": answer
+    }
