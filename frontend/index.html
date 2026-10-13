@@ -6,6 +6,9 @@
 
     <title>Vic Chatbot</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -15,7 +18,7 @@
     <div id="authSection">
 
         <section id="loginForm">
-        <h1>Vic Chatbot</h1>
+        <h1 class="brand-name">Vic Chatbot</h1>
 
         <h2>Welcome</h2>
 
@@ -85,27 +88,31 @@
             </aside>
 
             <main id="chatMain">
-                <h1>Vic Chatbot</h1>
-
-                <a id="adminDashboardLink" href="admin.html" hidden>
-                    Admin dashboard
-                </a>
-
-                <button id="logoutButton">
-                    Log Out
-                </button>
+                <header id="chatHeader">
+                    <h1 class="brand-name">Vic Chatbot</h1>
+                    <div class="chat-header-actions">
+                        <a id="adminDashboardLink" href="admin.html" hidden>
+                            Admin dashboard
+                        </a>
+                        <button id="logoutButton">
+                            Log Out
+                        </button>
+                    </div>
+                </header>
 
                 <div id="chat"></div>
 
-                <input
-                    id="messageInput"
-                    type="text"
-                    placeholder="Type your message..."
-                >
+                <div id="messageArea">
+                    <input
+                        id="messageInput"
+                        type="text"
+                        placeholder="Type your message..."
+                    >
 
-                <button id="sendButton">
-                    Send
-                </button>
+                    <button id="sendButton">
+                        Send
+                    </button>
+                </div>
             </main>
         </div>
     </div>
