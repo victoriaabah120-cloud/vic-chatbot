@@ -2,15 +2,20 @@ import os
 import uuid
 from dotenv import load_dotenv
 from groq import Groq
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from supabase import create_client
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500"],
+    allow_origins=[
+         "http://127.0.0.1:5500",
+         "http://localhost:5500",
+         "https://cuddly-capybara-p7jrpwgv547gh7v6p-5500.app.github.dev"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -18,11 +23,14 @@ app.add_middleware(
 
 load_dotenv()
 
+supabase = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY"),
+)
+
 client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
-
-conversation_histories = {}
 
 
 @app.get("/")
@@ -39,29 +47,176 @@ def create_conversation_id():
     return str(uuid.uuid4())
 
 
+def make_title(message: str) -> str:
+    # Fallback: the first 40 characters of the user's message
+    fallback = message.strip().replace("\n", " ")[:40].strip()
+    if not fallback:
+        fallback = "New conversation"
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Write a title of 3 to 5 words for a chat that "
+                        "starts with the user's message. Reply with the "
+                        "title only, with no quotes and no full stop."
+                    ),
+                },
+                {"role": "user", "content": message},
+            ],
+        )
+        title = (response.choices[0].message.content or "").strip()
+        title = title.replace("\n", " ").strip("\"'").rstrip(".")
+        if not title:
+            return fallback
+        return title[:60]
+    except Exception:
+        return fallback
+
+
+def get_current_user(authorization: str | None):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="A bearer access token is required.",
+        )
+
+    access_token = authorization.removeprefix("Bearer ").strip()
+    if not access_token:
+        raise HTTPException(
+            status_code=401,
+            detail="A bearer access token is required.",
+        )
+
+    try:
+        response = supabase.auth.get_user(access_token)
+    except Exception as error:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired access token.",
+        ) from error
+
+    if response.user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired access token.",
+        )
+
+    return response.user
+
+
 @app.post("/conversation")
-def create_conversation():
+def create_conversation(authorization: str | None = Header(default=None)):
+    user = get_current_user(authorization)
     conversation_id = create_conversation_id()
 
-    conversation_histories[conversation_id] = []
+    supabase.table("conversations").insert({
+        "id": conversation_id,
+        "user_id": user.id,
+        "title": "New conversation",
+    }).execute()
 
     return {
         "conversation_id": conversation_id
     }
 
 
+@app.get("/conversations")
+def list_conversations(authorization: str | None = Header(default=None)):
+    user = get_current_user(authorization)
+    conversations = (
+        supabase.table("conversations")
+        .select("id,title")
+        .eq("user_id", user.id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    return {
+        "conversations": conversations.data
+    }
+
+
+@app.get("/conversation/{conversation_id}/messages")
+def list_conversation_messages(
+    conversation_id: str,
+    authorization: str | None = Header(default=None),
+):
+    user = get_current_user(authorization)
+    conversation = (
+        supabase.table("conversations")
+        .select("id")
+        .eq("id", conversation_id)
+        .eq("user_id", user.id)
+        .limit(1)
+        .execute()
+    )
+    if not conversation.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found.",
+        )
+
+    messages = (
+        supabase.table("messages")
+        .select("role,content")
+        .eq("conversation_id", conversation_id)
+        .order("created_at")
+        .execute()
+    )
+
+    return {
+        "messages": messages.data
+    }
+
+
 @app.post("/chat")
-def chat(request: ChatRequest):
+def chat(
+    request: ChatRequest,
+    authorization: str | None = Header(default=None),
+):
+    user = get_current_user(authorization)
 
-    if request.conversation_id not in conversation_histories:
-        conversation_histories[request.conversation_id] = []
+    conversation = (
+        supabase.table("conversations")
+        .select("id,title")
+        .eq("id", request.conversation_id)
+        .eq("user_id", user.id)
+        .limit(1)
+        .execute()
+    )
+    if not conversation.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found.",
+        )
 
-    history = conversation_histories[request.conversation_id]
+    current_title = conversation.data[0]["title"]
 
-    history.append({
+    stored_messages = (
+        supabase.table("messages")
+        .select("role,content")
+        .eq("conversation_id", request.conversation_id)
+        .order("created_at")
+        .execute()
+    )
+    history = [
+        {"role": message["role"], "content": message["content"]}
+        for message in stored_messages.data
+    ]
+
+    user_message = {
         "role": "user",
         "content": request.message
-    })
+    }
+    supabase.table("messages").insert({
+        **user_message,
+        "conversation_id": request.conversation_id,
+    }).execute()
+    history.append(user_message)
 
     try:
         response = client.chat.completions.create(
@@ -129,18 +284,36 @@ Response style:
             ]
         )
 
-    except Exception as e:
+    except Exception as error:
         raise HTTPException(
             status_code=500,
             detail="Something went wrong while generating the response."
-        )
+        ) from error
 
     answer = response.choices[0].message.content
 
-    history.append({
+    assistant_message = {
         "role": "assistant",
         "content": answer
-    })
+    }
+    supabase.table("messages").insert({
+        **assistant_message,
+        "conversation_id": request.conversation_id,
+    }).execute()
+
+    # Name the conversation after its first message
+    if current_title == "New conversation":
+        try:
+            new_title = make_title(request.message)
+            (
+                supabase.table("conversations")
+                .update({"title": new_title})
+                .eq("id", request.conversation_id)
+                .eq("user_id", user.id)
+                .execute()
+            )
+        except Exception:
+            pass
 
     return {
         "message": answer

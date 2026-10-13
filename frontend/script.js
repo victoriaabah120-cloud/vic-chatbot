@@ -3,18 +3,29 @@ import {
 } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 
+// ==============================
+// SUPABASE
+// ==============================
+
 const SUPABASE_URL =
     "https://ibsyrfulsxlnitilxcaa.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_LQE8u0QjUgfAHfT3iHpbYA_miu-Dnxk";
 
-
 const supabaseClient =
     createClient(
         SUPABASE_URL,
         SUPABASE_PUBLISHABLE_KEY
     );
+
+
+// ==============================
+// FASTAPI BACKEND
+// ==============================
+
+const API_URL =
+    "https://cuddly-capybara-p7jrpwgv547gh7v6p-8000.app.github.dev";
 
 
 // ==============================
@@ -53,6 +64,24 @@ const messageInput =
 
 const sendButton =
     document.getElementById("sendButton");
+
+const conversationList =
+    document.getElementById("conversationList");
+
+const newConversationButton =
+    document.getElementById("newConversationButton");
+
+const conversationHistoryMessage =
+    document.getElementById("conversationHistoryMessage");
+
+
+// ==============================
+// CURRENT CONVERSATION
+// ==============================
+
+let conversationId = null;
+
+let conversationLoadSequence = 0;
 
 
 // ==============================
@@ -110,6 +139,10 @@ async function signUp() {
 }
 
 
+// ==============================
+// LOGIN
+// ==============================
+
 async function login() {
 
     const email =
@@ -156,6 +189,10 @@ async function login() {
 }
 
 
+// ==============================
+// LOGOUT
+// ==============================
+
 async function logout() {
 
     const {
@@ -173,6 +210,8 @@ async function logout() {
         return;
     }
 
+    conversationId = null;
+
     showAuth();
 }
 
@@ -188,6 +227,15 @@ function showChat() {
 
     chatSection.style.display =
         "block";
+
+    if (conversationId) {
+
+        loadConversationHistory();
+
+    } else {
+
+        startNewConversation();
+    }
 }
 
 
@@ -209,6 +257,13 @@ function showAuth() {
         "";
 
     authMessage.textContent =
+        "";
+
+    conversationId = null;
+
+    conversationList.replaceChildren();
+
+    conversationHistoryMessage.textContent =
         "";
 }
 
@@ -259,6 +314,7 @@ function escapeHtml(text) {
 function createTable(rows) {
 
     if (!rows.length) {
+
         return "";
     }
 
@@ -271,7 +327,8 @@ function createTable(rows) {
     let html =
         '<table class="chat-table">';
 
-    html += "<thead><tr>";
+    html +=
+        "<thead><tr>";
 
     header.forEach(cell => {
 
@@ -417,7 +474,6 @@ function formatResponse(message) {
                 result.push(
                     createTable(tableLines)
                 );
-
             }
 
         } else {
@@ -429,6 +485,7 @@ function formatResponse(message) {
             i++;
         }
     }
+
 
     text =
         result.join("\n");
@@ -483,16 +540,13 @@ function addMessage(
     const messageElement =
         document.createElement("div");
 
-
     messageElement.className =
         sender === "Vic"
             ? "assistant-message"
             : "user-message";
 
-
     const contentElement =
         document.createElement("div");
-
 
     if (sender === "Vic") {
 
@@ -505,19 +559,362 @@ function addMessage(
             message;
     }
 
-
     messageElement.appendChild(
         contentElement
     );
-
 
     chat.appendChild(
         messageElement
     );
 
-
     chat.scrollTop =
         chat.scrollHeight;
+}
+
+
+// ==============================
+// CREATE CONVERSATION
+// ==============================
+
+async function createConversation(
+    accessToken
+) {
+
+    const response =
+        await fetch(
+            `${API_URL}/conversation`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Authorization":
+                        `Bearer ${accessToken}`
+                }
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Could not create conversation."
+        );
+    }
+
+    const data =
+        await response.json();
+
+    conversationId =
+        data.conversation_id;
+
+    await loadConversationHistory();
+
+    return conversationId;
+}
+
+
+async function startNewConversation() {
+
+    newConversationButton.disabled =
+        true;
+
+    conversationLoadSequence += 1;
+
+    chat.replaceChildren();
+
+    try {
+
+        const {
+            data: {
+                session
+            },
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+        if (error) {
+
+            throw error;
+        }
+
+        if (!session) {
+
+            throw new Error(
+                "You are no longer logged in."
+            );
+        }
+
+        await createConversation(
+            session.access_token
+        );
+
+    } catch (error) {
+
+        console.error(
+            "New conversation error:",
+            error
+        );
+
+        conversationHistoryMessage.textContent =
+            "Could not create a new conversation. Please try again.";
+
+    } finally {
+
+        newConversationButton.disabled =
+            false;
+    }
+}
+
+
+// ==============================
+// LOAD CONVERSATION HISTORY
+// ==============================
+
+async function loadConversationHistory() {
+
+    conversationList.replaceChildren();
+
+    conversationHistoryMessage.textContent =
+        "Loading conversations...";
+
+    try {
+
+        const {
+            data: {
+                session
+            },
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+        if (error) {
+
+            throw error;
+        }
+
+        if (!session) {
+
+            conversationHistoryMessage.textContent =
+                "Log in to view your conversations.";
+
+            return;
+        }
+
+        const response =
+            await fetch(
+                `${API_URL}/conversations`,
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + session.access_token
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Could not load conversation history."
+            );
+        }
+
+        const data =
+            await response.json();
+
+        if (!Array.isArray(data.conversations)) {
+
+            throw new Error(
+                "The conversation-history response was invalid."
+            );
+        }
+
+        data.conversations.forEach(conversation => {
+
+            const item =
+                document.createElement("li");
+
+            const button =
+                document.createElement("button");
+
+            button.type =
+                "button";
+
+            button.className =
+                "conversation-button";
+
+            button.dataset.conversationId =
+                conversation.id;
+
+            button.setAttribute(
+                "aria-pressed",
+                String(conversation.id === conversationId)
+            );
+
+            button.textContent =
+                typeof conversation.title === "string" &&
+                conversation.title.trim()
+                    ? conversation.title.trim()
+                    : "New conversation";
+
+            button.addEventListener(
+                "click",
+                () => openConversation(conversation.id)
+            );
+
+            item.appendChild(button);
+
+            conversationList.appendChild(item);
+        });
+
+        conversationHistoryMessage.textContent =
+            data.conversations.length
+                ? ""
+                : "No conversations yet.";
+
+    } catch (error) {
+
+        console.error(
+            "Conversation history error:",
+            error
+        );
+
+        conversationList.replaceChildren();
+
+        conversationHistoryMessage.textContent =
+            "Could not load conversation history. Please try again later.";
+    }
+}
+
+
+// ==============================
+// OPEN CONVERSATION
+// ==============================
+
+async function openConversation(selectedConversationId) {
+
+    conversationId =
+        selectedConversationId;
+
+    const requestedConversationId =
+        selectedConversationId;
+
+    const loadSequence =
+        ++conversationLoadSequence;
+
+    conversationList
+        .querySelectorAll("button[data-conversation-id]")
+        .forEach(button => {
+
+            button.setAttribute(
+                "aria-pressed",
+                String(button.dataset.conversationId === requestedConversationId)
+            );
+        });
+
+    chat.replaceChildren();
+
+    const loadingMessage =
+        document.createElement("p");
+
+    loadingMessage.textContent =
+        "Loading conversation...";
+
+    chat.appendChild(loadingMessage);
+
+    try {
+
+        const {
+            data: {
+                session
+            },
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+        if (error) {
+
+            throw error;
+        }
+
+        if (!session) {
+
+            throw new Error(
+                "You are no longer logged in."
+            );
+        }
+
+        const response =
+            await fetch(
+                `${API_URL}/conversation/${encodeURIComponent(requestedConversationId)}/messages`,
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + session.access_token
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Could not load this conversation."
+            );
+        }
+
+        const data =
+            await response.json();
+
+        if (!Array.isArray(data.messages)) {
+
+            throw new Error(
+                "The conversation response was invalid."
+            );
+        }
+
+        if (loadSequence !== conversationLoadSequence) {
+
+            return;
+        }
+
+        chat.replaceChildren();
+
+        data.messages.forEach(message => {
+
+            if (
+                message.role !== "user" &&
+                message.role !== "assistant"
+            ) {
+
+                throw new Error(
+                    "The conversation contained an unsupported message role."
+                );
+            }
+
+            addMessage(
+                message.role === "assistant" ? "Vic" : "You",
+                message.content
+            );
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Conversation loading error:",
+            error
+        );
+
+        if (loadSequence === conversationLoadSequence) {
+
+            chat.replaceChildren();
+
+            const errorMessage =
+                document.createElement("p");
+
+            errorMessage.textContent =
+                "Could not load this conversation. Please try again.";
+
+            chat.appendChild(errorMessage);
+        }
+    }
 }
 
 
@@ -530,29 +927,25 @@ async function sendMessage() {
     const message =
         messageInput.value.trim();
 
-
     if (!message) {
+
         return;
     }
-
 
     addMessage(
         "You",
         message
     );
 
-
     messageInput.value =
         "";
-
 
     sendButton.disabled =
         true;
 
-
     try {
 
-        // Get the logged-in user's session
+        // Get logged-in user's session
         const {
             data: {
                 session
@@ -561,7 +954,7 @@ async function sendMessage() {
             await supabaseClient.auth.getSession();
 
 
-        // Make sure the user is logged in
+        // Make sure user is logged in
         if (!session) {
 
             alert(
@@ -572,28 +965,39 @@ async function sendMessage() {
         }
 
 
-        // Get the user's access token
+        // Get access token
         const accessToken =
             session.access_token;
 
 
-        // Send the message and token to FastAPI
+        // Create conversation if needed
+        if (!conversationId) {
+
+            await createConversation(
+                accessToken
+            );
+        }
+
+
+        // Send message to FastAPI
         const response =
             await fetch(
-                "http://127.0.0.1:8000/chat",
+                `${API_URL}/chat`,
                 {
                     method: "POST",
 
                     headers: {
-        "Content-Type":
-        "application/json",
+                        "Content-Type":
+                            "application/json",
 
-        "Authorization":
-        `Bearer ${accessToken}`
-        },
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    },
+
                     body: JSON.stringify({
+
                         conversation_id:
-                            "test-conversation",
+                            conversationId,
 
                         message:
                             message
@@ -603,6 +1007,14 @@ async function sendMessage() {
 
 
         if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            console.error(
+                "Backend error:",
+                errorText
+            );
 
             throw new Error(
                 "The chatbot server returned an error."
@@ -626,7 +1038,6 @@ async function sendMessage() {
             "Chat error:",
             error
         );
-
 
         addMessage(
             "Vic",
@@ -661,6 +1072,12 @@ loginButton.addEventListener(
 logoutButton.addEventListener(
     "click",
     logout
+);
+
+
+newConversationButton.addEventListener(
+    "click",
+    startNewConversation
 );
 
 

@@ -46,29 +46,43 @@
     <!-- Chat section -->
     <div id="chatSection" style="display: none;">
 
-        <h1>Vic Chatbot</h1>
+        <div id="chatLayout">
+            <aside id="conversationSidebar">
+                <h2>Conversations</h2>
+                <button id="newConversationButton" type="button">
+                    New chat
+                </button>
+                <p id="conversationHistoryMessage" role="status">
+                    Loading conversations...
+                </p>
+                <ul id="conversationList"></ul>
+            </aside>
 
-        <button id="logoutButton">
-            Log Out
-        </button>
+            <main id="chatMain">
+                <h1>Vic Chatbot</h1>
 
-        <div id="chat"></div>
+                <button id="logoutButton">
+                    Log Out
+                </button>
 
-        <input
-            id="messageInput"
-            type="text"
-            placeholder="Type your message..."
-        >
+                <div id="chat"></div>
 
-        <button id="sendButton">
-            Send
-        </button>
+                <input
+                    id="messageInput"
+                    type="text"
+                    placeholder="Type your message..."
+                >
 
+                <button id="sendButton">
+                    Send
+                </button>
+            </main>
+        </div>
     </div>
 
 
     <!-- Our JavaScript -->
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js?v=5"></script>
 
 </body>
 </html>
