@@ -14,6 +14,7 @@
     <!-- Authentication section -->
     <div id="authSection">
 
+        <section id="loginForm">
         <h1>Vic Chatbot</h1>
 
         <h2>Welcome</h2>
@@ -34,11 +35,36 @@
             Sign Up
         </button>
 
+        <p>Conversations may be reviewed by an admin.</p>
+
         <button id="loginButton">
             Log In
         </button>
 
-        <p id="authMessage"></p>
+        <p><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
+        <p id="authMessage" role="status"></p>
+
+        </section>
+
+        <section id="resetRequestSection" hidden>
+            <h2>Reset your password</h2>
+            <form id="resetRequestForm">
+                <label for="resetEmailInput">Email address</label>
+                <input
+                    id="resetEmailInput"
+                    type="email"
+                    autocomplete="email"
+                    required
+                >
+                <button id="requestPasswordResetButton" type="submit">
+                    Send reset link
+                </button>
+            </form>
+            <p id="passwordResetMessage" role="status"></p>
+            <button id="backToLoginButton" type="button">
+                Back to login
+            </button>
+        </section>
 
     </div>
 
@@ -86,7 +112,7 @@
 
 
     <!-- Our JavaScript -->
-    <script type="module" src="script.js?v=6"></script>
+    <script type="module" src="script.js?v=8"></script>
 
 </body>
 </html>

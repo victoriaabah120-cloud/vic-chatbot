@@ -48,6 +48,26 @@ def create_conversation_id():
     return str(uuid.uuid4())
 
 
+def is_user_banned(user) -> bool:
+    banned_until = getattr(user, "banned_until", None)
+    if not banned_until or str(banned_until).lower() == "none":
+        return False
+
+    try:
+        if isinstance(banned_until, datetime):
+            ban_expiry = banned_until
+        else:
+            ban_expiry = datetime.fromisoformat(
+                str(banned_until).replace("Z", "+00:00")
+            )
+        if ban_expiry.tzinfo is None:
+            ban_expiry = ban_expiry.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return True
+
+    return ban_expiry > datetime.now(timezone.utc)
+
+
 def make_title(message: str) -> str:
     # Fallback: the first 40 characters of the user's message
     fallback = message.strip().replace("\n", " ")[:40].strip()
@@ -104,6 +124,12 @@ def get_current_user(authorization: str | None):
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired access token.",
+        )
+
+    if is_user_banned(response.user):
+        raise HTTPException(
+            status_code=403,
+            detail="Account suspended",
         )
 
     return response.user
@@ -232,10 +258,182 @@ def admin_users():
                 "created_at": user.created_at,
                 "last_sign_in_at": user.last_sign_in_at,
                 "conversation_count": conversation_counts.get(user.id, 0),
+                "is_banned": is_user_banned(user),
             }
             for user in users
         ]
     }
+
+
+def get_admin_auth_user(user_id: str):
+    try:
+        response = supabase.auth.admin.get_user_by_id(user_id)
+    except Exception as error:
+        if getattr(error, "status", None) == 404:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found.",
+            ) from error
+        raise HTTPException(
+            status_code=502,
+            detail="Could not load the user account.",
+        ) from error
+
+    user = getattr(response, "user", response)
+    if not getattr(user, "id", None):
+        raise HTTPException(
+            status_code=404,
+            detail="User not found.",
+        )
+    return user
+
+
+@app.get(
+    "/admin/users/{user_id}/conversations",
+    dependencies=[Depends(require_admin)],
+)
+def admin_user_conversations(user_id: str):
+    user = get_admin_auth_user(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    conversations = []
+    offset = 0
+    page_size = 1000
+    while True:
+        response = (
+            supabase.table("conversations")
+            .select("id,title,created_at")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        page = response.data or []
+        conversations.extend(page)
+        if len(page) < page_size:
+            break
+        offset += page_size
+
+    message_counts = {}
+    conversation_ids = [conversation["id"] for conversation in conversations]
+    for batch_start in range(0, len(conversation_ids), 100):
+        conversation_batch = conversation_ids[batch_start:batch_start + 100]
+        offset = 0
+        while True:
+            response = (
+                supabase.table("messages")
+                .select("conversation_id")
+                .in_("conversation_id", conversation_batch)
+                .range(offset, offset + page_size - 1)
+                .execute()
+            )
+            messages = response.data or []
+            for message in messages:
+                conversation_id = message["conversation_id"]
+                message_counts[conversation_id] = (
+                    message_counts.get(conversation_id, 0) + 1
+                )
+            if len(messages) < page_size:
+                break
+            offset += page_size
+
+    return {
+        "conversations": [
+            {
+                **conversation,
+                "message_count": message_counts.get(conversation["id"], 0),
+            }
+            for conversation in conversations
+        ]
+    }
+
+
+@app.get(
+    "/admin/conversations/{conversation_id}/messages",
+    dependencies=[Depends(require_admin)],
+)
+def admin_conversation_messages(conversation_id: str):
+    conversation = (
+        supabase.table("conversations")
+        .select("id")
+        .eq("id", conversation_id)
+        .limit(1)
+        .execute()
+    )
+    if not conversation.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found.",
+        )
+
+    messages = []
+    offset = 0
+    page_size = 1000
+    while True:
+        response = (
+            supabase.table("messages")
+            .select("role,content,created_at")
+            .eq("conversation_id", conversation_id)
+            .order("created_at")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        page = response.data or []
+        messages.extend(page)
+        if len(page) < page_size:
+            return {"messages": messages}
+        offset += page_size
+
+
+@app.post("/admin/users/{user_id}/ban")
+def ban_user(user_id: str, admin_user=Depends(require_admin)):
+    if user_id == admin_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot ban your own account.",
+        )
+
+    target_user = get_admin_auth_user(user_id)
+    app_metadata = getattr(target_user, "app_metadata", None) or {}
+    if app_metadata.get("role") == "admin":
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot ban another admin.",
+        )
+
+    try:
+        supabase.auth.admin.update_user_by_id(
+            user_id,
+            {"ban_duration": "876000h"},
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="Could not suspend this account.",
+        ) from error
+
+    return {"message": "User banned."}
+
+
+@app.post(
+    "/admin/users/{user_id}/unban",
+    dependencies=[Depends(require_admin)],
+)
+def unban_user(user_id: str):
+    get_admin_auth_user(user_id)
+    try:
+        supabase.auth.admin.update_user_by_id(
+            user_id,
+            {"ban_duration": "none"},
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="Could not restore this account.",
+        ) from error
+
+    return {"message": "User unbanned."}
 
 
 @app.post("/conversation")

@@ -117,6 +117,21 @@ h1 {
     margin: 10px 0;
 }
 
+#resetRequestSection label,
+#resetPasswordForm label {
+    display: block;
+    margin-top: 12px;
+}
+
+#resetRequestSection input,
+#resetPasswordForm input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin: 10px 0;
+}
+
 
 button {
 
@@ -332,6 +347,35 @@ button:disabled {
     border: 1px solid #ddd;
     padding: 8px 10px;
     text-align: left;
+    overflow-wrap: anywhere;
+}
+
+#adminConversationList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#adminConversationList li,
+.admin-message {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: 8px 0;
+    padding: 10px;
+}
+
+.admin-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.admin-action-buttons button {
+    margin: 2px;
+}
+
+.admin-message p {
+    white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
 

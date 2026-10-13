@@ -49,14 +49,30 @@
                             <th scope="col">Created</th>
                             <th scope="col">Last sign-in</th>
                             <th scope="col">Conversations</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="adminUserRows"></tbody>
                 </table>
             </div>
         </section>
+
+        <p id="adminActionStatus" role="status"></p>
+
+        <section id="userConversationPanel" aria-labelledby="userConversationHeading" hidden>
+            <h2 id="userConversationHeading">User conversations</h2>
+            <p id="userConversationStatus" role="status"></p>
+            <ul id="adminConversationList"></ul>
+        </section>
+
+        <section id="adminMessagePanel" aria-labelledby="adminMessageHeading" hidden>
+            <h2 id="adminMessageHeading">Conversation messages</h2>
+            <p id="adminMessageStatus" role="status"></p>
+            <div id="adminConversationMessages"></div>
+        </section>
     </main>
 
-    <script type="module" src="admin.js"></script>
+    <script type="module" src="admin.js?v=2"></script>
 </body>
 </html>

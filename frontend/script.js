@@ -81,6 +81,30 @@ const conversationHistoryMessage =
 const adminDashboardLink =
     document.getElementById("adminDashboardLink");
 
+const loginForm =
+    document.getElementById("loginForm");
+
+const forgotPasswordLink =
+    document.getElementById("forgotPasswordLink");
+
+const resetRequestSection =
+    document.getElementById("resetRequestSection");
+
+const resetRequestForm =
+    document.getElementById("resetRequestForm");
+
+const resetEmailInput =
+    document.getElementById("resetEmailInput");
+
+const requestPasswordResetButton =
+    document.getElementById("requestPasswordResetButton");
+
+const passwordResetMessage =
+    document.getElementById("passwordResetMessage");
+
+const backToLoginButton =
+    document.getElementById("backToLoginButton");
+
 
 // ==============================
 // CURRENT CONVERSATION
@@ -238,14 +262,7 @@ function showChat(session) {
     adminDashboardLink.hidden =
         session?.user?.app_metadata?.role !== "admin";
 
-    if (conversationId) {
-
-        loadConversationHistory();
-
-    } else {
-
-        startNewConversation();
-    }
+    loadConversationHistory(true);
 }
 
 
@@ -258,6 +275,12 @@ function showAuth() {
         "none";
 
     adminDashboardLink.hidden =
+        true;
+
+    loginForm.hidden =
+        false;
+
+    resetRequestSection.hidden =
         true;
 
     chat.innerHTML =
@@ -281,11 +304,93 @@ function showAuth() {
 }
 
 
+async function handleAccountSuspended(response) {
+    if (response.status !== 403) {
+        return false;
+    }
+
+    const data = await response.clone().json().catch(() => ({}));
+    if (data.detail !== "Account suspended") {
+        return false;
+    }
+
+    await supabaseClient.auth.signOut({ scope: "local" });
+    conversationId = null;
+    showAuth();
+    authMessage.textContent = data.detail;
+    return true;
+}
+
+
+function showPasswordResetRequest() {
+    resetEmailInput.value =
+        emailInput.value.trim();
+    passwordResetMessage.textContent =
+        "";
+    loginForm.hidden =
+        true;
+    resetRequestSection.hidden =
+        false;
+}
+
+
+async function requestPasswordReset(event) {
+    event.preventDefault();
+    requestPasswordResetButton.disabled =
+        true;
+    passwordResetMessage.textContent =
+        "Sending reset instructions...";
+
+    try {
+        const { error } =
+            await supabaseClient.auth.resetPasswordForEmail(
+                resetEmailInput.value.trim(),
+                {
+                    redirectTo: `${window.location.origin}/reset.html`,
+                }
+            );
+
+        if (error) {
+            passwordResetMessage.textContent =
+                "We couldn't process that request right now. Please try again later.";
+            return;
+        }
+
+        passwordResetMessage.textContent =
+            "If an account exists for that email, reset instructions will be sent shortly.";
+    } catch (error) {
+        console.error("Password reset request error:", error);
+        passwordResetMessage.textContent =
+            "We couldn't process that request right now. Please try again later.";
+    } finally {
+        requestPasswordResetButton.disabled =
+            false;
+    }
+}
+
+
 // ==============================
 // CHECK EXISTING SESSION
 // ==============================
 
 async function checkSession() {
+
+    const passwordResetCompleted =
+        new URLSearchParams(window.location.search)
+            .get("password_reset") === "success";
+
+    if (passwordResetCompleted) {
+        await supabaseClient.auth.signOut({ scope: "local" });
+        showAuth();
+        authMessage.textContent =
+            "Your password has been updated. Log in with your new password.";
+        window.history.replaceState(
+            {},
+            "",
+            window.location.pathname
+        );
+        return;
+    }
 
     const {
         data: {
@@ -609,6 +714,7 @@ async function createConversation(
         );
 
     if (!response.ok) {
+        await handleAccountSuspended(response);
 
         throw new Error(
             "Could not create conversation."
@@ -627,56 +733,27 @@ async function createConversation(
 }
 
 
-async function startNewConversation() {
+function showEmptyChat() {
+    const emptyMessage =
+        document.createElement("p");
+    emptyMessage.className =
+        "empty-chat-message";
+    emptyMessage.textContent =
+        "Start chatting by sending a message.";
+    chat.replaceChildren(emptyMessage);
+}
 
-    newConversationButton.disabled =
-        true;
 
+function startNewConversation() {
     conversationLoadSequence += 1;
+    conversationId = null;
+    showEmptyChat();
 
-    chat.replaceChildren();
-
-    try {
-
-        const {
-            data: {
-                session
-            },
-            error
-        } =
-            await supabaseClient.auth.getSession();
-
-        if (error) {
-
-            throw error;
-        }
-
-        if (!session) {
-
-            throw new Error(
-                "You are no longer logged in."
-            );
-        }
-
-        await createConversation(
-            session.access_token
-        );
-
-    } catch (error) {
-
-        console.error(
-            "New conversation error:",
-            error
-        );
-
-        conversationHistoryMessage.textContent =
-            "Could not create a new conversation. Please try again.";
-
-    } finally {
-
-        newConversationButton.disabled =
-            false;
-    }
+    conversationList
+        .querySelectorAll("button[data-conversation-id]")
+        .forEach(button => {
+            button.setAttribute("aria-pressed", "false");
+        });
 }
 
 
@@ -684,7 +761,10 @@ async function startNewConversation() {
 // LOAD CONVERSATION HISTORY
 // ==============================
 
-async function loadConversationHistory() {
+async function loadConversationHistory(openMostRecent = false) {
+
+    const loadSequence =
+        conversationLoadSequence;
 
     conversationList.replaceChildren();
 
@@ -726,6 +806,7 @@ async function loadConversationHistory() {
             );
 
         if (!response.ok) {
+            await handleAccountSuspended(response);
 
             throw new Error(
                 "Could not load conversation history."
@@ -784,6 +865,17 @@ async function loadConversationHistory() {
             data.conversations.length
                 ? ""
                 : "No conversations yet.";
+
+        if (loadSequence !== conversationLoadSequence) {
+            return;
+        }
+
+        if (openMostRecent && data.conversations.length) {
+            await openConversation(data.conversations[0].id);
+        } else if (openMostRecent) {
+            conversationId = null;
+            showEmptyChat();
+        }
 
     } catch (error) {
 
@@ -869,6 +961,7 @@ async function openConversation(selectedConversationId) {
             );
 
         if (!response.ok) {
+            await handleAccountSuspended(response);
 
             throw new Error(
                 "Could not load this conversation."
@@ -1023,6 +1116,10 @@ async function sendMessage() {
 
         if (!response.ok) {
 
+            if (await handleAccountSuspended(response)) {
+                return;
+            }
+
             const errorText =
                 await response.text();
 
@@ -1087,6 +1184,24 @@ loginButton.addEventListener(
 logoutButton.addEventListener(
     "click",
     logout
+);
+
+forgotPasswordLink.addEventListener(
+    "click",
+    function(event) {
+        event.preventDefault();
+        showPasswordResetRequest();
+    }
+);
+
+resetRequestForm.addEventListener(
+    "submit",
+    requestPasswordReset
+);
+
+backToLoginButton.addEventListener(
+    "click",
+    showAuth
 );
 
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set a new password | Vic Chatbot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main id="authSection">
+        <h1>Set a new password</h1>
+        <p id="resetStatus" role="status">Checking your reset link...</p>
+
+        <form id="resetPasswordForm" hidden>
+            <label for="newPasswordInput">New password</label>
+            <input
+                id="newPasswordInput"
+                type="password"
+                autocomplete="new-password"
+                required
+            >
+
+            <label for="confirmPasswordInput">Type the new password again</label>
+            <input
+                id="confirmPasswordInput"
+                type="password"
+                autocomplete="new-password"
+                required
+            >
+
+            <button id="saveNewPasswordButton" type="submit">
+                Save new password
+            </button>
+        </form>
+    </main>
+
+    <script type="module" src="reset.js"></script>
+</body>
+</html>
