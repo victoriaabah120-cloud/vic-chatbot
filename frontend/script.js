@@ -2,6 +2,10 @@ import {
     createClient
 } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+import { marked } from "https://cdn.jsdelivr.net/npm/marked@15.0.12/+esm";
+
+import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.2.6/+esm";
+
 
 // ==============================
 // SUPABASE
@@ -74,6 +78,9 @@ const newConversationButton =
 const conversationHistoryMessage =
     document.getElementById("conversationHistoryMessage");
 
+const adminDashboardLink =
+    document.getElementById("adminDashboardLink");
+
 
 // ==============================
 // CURRENT CONVERSATION
@@ -129,7 +136,7 @@ async function signUp() {
         authMessage.textContent =
             "Account created successfully.";
 
-        showChat();
+        showChat(data.session);
 
     } else {
 
@@ -184,7 +191,7 @@ async function login() {
         authMessage.textContent =
             "";
 
-        showChat();
+        showChat(data.session);
     }
 }
 
@@ -220,13 +227,16 @@ async function logout() {
 // SHOW AUTH / CHAT
 // ==============================
 
-function showChat() {
+function showChat(session) {
 
     authSection.style.display =
         "none";
 
     chatSection.style.display =
         "block";
+
+    adminDashboardLink.hidden =
+        session?.user?.app_metadata?.role !== "admin";
 
     if (conversationId) {
 
@@ -246,6 +256,9 @@ function showAuth() {
 
     chatSection.style.display =
         "none";
+
+    adminDashboardLink.hidden =
+        true;
 
     chat.innerHTML =
         "";
@@ -283,7 +296,7 @@ async function checkSession() {
 
     if (session) {
 
-        showChat();
+        showChat(session);
 
     } else {
 
@@ -551,7 +564,9 @@ function addMessage(
     if (sender === "Vic") {
 
         contentElement.innerHTML =
-            formatResponse(message);
+            DOMPurify.sanitize(
+                marked.parse(message, { breaks: true })
+            );
 
     } else {
 

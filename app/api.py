@@ -1,8 +1,9 @@
 import os
 import uuid
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from groq import Groq
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
@@ -106,6 +107,135 @@ def get_current_user(authorization: str | None):
         )
 
     return response.user
+
+
+def require_admin(authorization: str | None = Header(default=None)):
+    user = get_current_user(authorization)
+    app_metadata = getattr(user, "app_metadata", None) or {}
+    if app_metadata.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access is required.",
+        )
+    return user
+
+
+def get_all_auth_users():
+    users = []
+    page = 1
+    page_size = 1000
+
+    while True:
+        page_users = supabase.auth.admin.list_users(
+            page=page,
+            per_page=page_size,
+        )
+        users.extend(page_users)
+        if len(page_users) < page_size:
+            return users
+        page += 1
+
+
+def get_table_count(table_name: str) -> int:
+    response = (
+        supabase.table(table_name)
+        .select("id", count="exact", head=True)
+        .execute()
+    )
+    return response.count or 0
+
+
+def get_conversation_counts():
+    counts = {}
+    offset = 0
+    page_size = 1000
+
+    while True:
+        response = (
+            supabase.table("conversations")
+            .select("user_id")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        conversations = response.data or []
+        for conversation in conversations:
+            user_id = conversation["user_id"]
+            counts[user_id] = counts.get(user_id, 0) + 1
+
+        if len(conversations) < page_size:
+            return counts
+        offset += page_size
+
+
+def get_messages_per_day():
+    today = datetime.now(timezone.utc).date()
+    first_day = today - timedelta(days=6)
+    start_at = datetime.combine(first_day, datetime.min.time(), timezone.utc)
+    end_at = datetime.combine(today + timedelta(days=1), datetime.min.time(), timezone.utc)
+    daily_counts = {
+        (first_day + timedelta(days=offset)).isoformat(): 0
+        for offset in range(7)
+    }
+    offset = 0
+    page_size = 1000
+
+    while True:
+        response = (
+            supabase.table("messages")
+            .select("created_at")
+            .gte("created_at", start_at.isoformat())
+            .lt("created_at", end_at.isoformat())
+            .order("created_at")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        messages = response.data or []
+
+        for message in messages:
+            created_at = datetime.fromisoformat(
+                str(message["created_at"]).replace("Z", "+00:00")
+            )
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+            date_key = created_at.astimezone(timezone.utc).date().isoformat()
+            if date_key in daily_counts:
+                daily_counts[date_key] += 1
+
+        if len(messages) < page_size:
+            return [
+                {"date": day, "count": count}
+                for day, count in daily_counts.items()
+            ]
+        offset += page_size
+
+
+@app.get("/admin/stats", dependencies=[Depends(require_admin)])
+def admin_stats():
+    return {
+        "total_users": len(get_all_auth_users()),
+        "total_conversations": get_table_count("conversations"),
+        "total_messages": get_table_count("messages"),
+        "messages_per_day": get_messages_per_day(),
+    }
+
+
+@app.get("/admin/users", dependencies=[Depends(require_admin)])
+def admin_users():
+    users = get_all_auth_users()
+    conversation_counts = get_conversation_counts()
+
+    return {
+        "users": [
+            {
+                "id": user.id,
+                "email": user.email,
+                "created_at": user.created_at,
+                "last_sign_in_at": user.last_sign_in_at,
+                "conversation_count": conversation_counts.get(user.id, 0),
+            }
+            for user in users
+        ]
+    }
 
 
 @app.post("/conversation")
@@ -278,6 +408,11 @@ Response style:
 - Do not automatically include unnecessary links.
 - If someone asks who owns or created Vic Chatbot, identify Victoria Abah.
 - Never invent a different owner, creator, company, or team for Vic Chatbot.
+
+Plain-text and accuracy requirements:
+- Reply in plain text using short paragraphs.
+- Do not use Markdown, HTML, tables, or emojis.
+- If you are unsure about a factual claim, say so instead of guessing.
 """
                 },
                 *history

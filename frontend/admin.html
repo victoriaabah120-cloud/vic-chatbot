@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vic Chatbot Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <p id="adminStatus" role="status">Checking your access...</p>
+
+    <main id="adminDashboard" hidden>
+        <header id="adminHeader">
+            <h1>Admin dashboard</h1>
+            <a href="index.html">Back to chat</a>
+        </header>
+
+        <section aria-labelledby="overviewHeading">
+            <h2 id="overviewHeading">Overview</h2>
+            <div id="adminStats">
+                <article class="admin-stat">
+                    <h3>Total users</h3>
+                    <p id="totalUsers">0</p>
+                </article>
+                <article class="admin-stat">
+                    <h3>Total conversations</h3>
+                    <p id="totalConversations">0</p>
+                </article>
+                <article class="admin-stat">
+                    <h3>Total messages</h3>
+                    <p id="totalMessages">0</p>
+                </article>
+            </div>
+        </section>
+
+        <section aria-labelledby="dailyMessagesHeading">
+            <h2 id="dailyMessagesHeading">Messages per day, last 7 days</h2>
+            <ol id="messagesPerDay"></ol>
+        </section>
+
+        <section aria-labelledby="usersHeading">
+            <h2 id="usersHeading">Users</h2>
+            <div class="admin-table-wrap">
+                <table id="adminUsersTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">User ID</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Created</th>
+                            <th scope="col">Last sign-in</th>
+                            <th scope="col">Conversations</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUserRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
