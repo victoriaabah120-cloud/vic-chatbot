@@ -81,6 +81,12 @@ const conversationHistoryMessage =
 const adminDashboardLink =
     document.getElementById("adminDashboardLink");
 
+const mobileMenuButton =
+    document.getElementById("mobileMenuButton");
+
+const conversationSidebar =
+    document.getElementById("conversationSidebar");
+
 const loginForm =
     document.getElementById("loginForm");
 
@@ -1198,6 +1204,44 @@ resetRequestForm.addEventListener(
     "submit",
     requestPasswordReset
 );
+
+function closeMobileMenu() {
+    document.body.classList.remove("sidebar-open");
+    mobileMenuButton.setAttribute("aria-expanded", "false");
+    mobileMenuButton.setAttribute("aria-label", "Open conversation menu");
+}
+
+mobileMenuButton.addEventListener("click", () => {
+    const isOpen =
+        document.body.classList.toggle("sidebar-open");
+    mobileMenuButton.setAttribute("aria-expanded", String(isOpen));
+    mobileMenuButton.setAttribute(
+        "aria-label",
+        isOpen ? "Close conversation menu" : "Open conversation menu"
+    );
+});
+
+conversationSidebar.addEventListener("click", event => {
+    if (event.target.closest("button, a")) {
+        closeMobileMenu();
+    }
+});
+
+document.addEventListener("click", event => {
+    if (
+        document.body.classList.contains("sidebar-open") &&
+        !conversationSidebar.contains(event.target) &&
+        !mobileMenuButton.contains(event.target)
+    ) {
+        closeMobileMenu();
+    }
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeMobileMenu();
+    }
+});
 
 backToLoginButton.addEventListener(
     "click",
