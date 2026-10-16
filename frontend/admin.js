@@ -149,6 +149,7 @@ function renderUsers(users) {
         actions.className = "admin-action-buttons";
 
         const banButton = document.createElement("button");
+        banButton.className = user.is_banned ? "unban-button" : "ban-button";
         banButton.type = "button";
         banButton.textContent = user.is_banned ? "Unban" : "Ban";
         banButton.addEventListener("click", () =>
@@ -156,6 +157,7 @@ function renderUsers(users) {
         );
 
         const conversationsButton = document.createElement("button");
+        conversationsButton.className = "conversations-button";
         conversationsButton.type = "button";
         conversationsButton.textContent = "View conversations";
         conversationsButton.addEventListener("click", () =>
