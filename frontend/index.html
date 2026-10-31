@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -18,7 +18,10 @@
     <div id="authSection">
 
         <section id="loginForm">
-        <h1 class="brand-name">Vic Chatbot</h1>
+        <header class="welcome-banner login-welcome-banner">
+            <h1>Welcome to Vic Chatbot</h1>
+            <p>Your conversational AI assistant</p>
+        </header>
 
         <h2>Welcome</h2>
 
@@ -77,26 +80,38 @@
 
         <div id="chatLayout">
             <aside id="conversationSidebar">
-                <h2>Conversations</h2>
                 <button id="newConversationButton" type="button">
                     New chat
                 </button>
+                <h2>Conversations</h2>
                 <p id="conversationHistoryMessage" role="status">
                     Loading conversations...
                 </p>
                 <ul id="conversationList"></ul>
+                <div class="sidebar-footer">
+                    <button id="logoutButton" type="button">
+                        Log Out
+                    </button>
+                    <a id="adminDashboardLink" href="admin.html" hidden>
+                        Admin dashboard
+                    </a>
+                </div>
             </aside>
 
             <main id="chatMain">
-                <header id="chatHeader">
-                    <h1 class="brand-name">Vic Chatbot</h1>
-                    <div class="chat-header-actions">
-                        <a id="adminDashboardLink" href="admin.html" hidden>
-                            Admin dashboard
-                        </a>
-                        <button id="logoutButton">
-                            Log Out
-                        </button>
+                <header id="chatHeader" class="welcome-banner chat-welcome-banner">
+                    <button
+                        id="mobileMenuButton"
+                        type="button"
+                        aria-controls="conversationSidebar"
+                        aria-expanded="false"
+                        aria-label="Open conversation menu"
+                    >
+                        Menu
+                    </button>
+                    <div class="welcome-banner-copy">
+                        <h1>Welcome to Vic Chatbot</h1>
+                        <p>Ask a question or start a conversation.</p>
                     </div>
                 </header>
 
@@ -109,10 +124,21 @@
                         placeholder="Type your message..."
                     >
 
+                    <button
+                        id="micButton"
+                        type="button"
+                        aria-label="Start voice input"
+                        aria-pressed="false"
+                        hidden
+                    >
+                        Mic
+                    </button>
+
                     <button id="sendButton">
                         Send
                     </button>
                 </div>
+                <p id="voiceStatus" role="status" aria-live="polite"></p>
             </main>
         </div>
     </div>

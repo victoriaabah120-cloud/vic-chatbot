@@ -6,17 +6,19 @@
     <title>Vic Chatbot Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <p id="adminStatus" role="status">Checking your access...</p>
 
     <main id="adminDashboard" hidden>
-        <header id="adminHeader">
+        <header id="adminHeader" class="welcome-banner">
             <div class="admin-header-brand">
-                <span class="brand-name">Vic Chatbot</span>
-                <h1>Admin dashboard</h1>
+                <div class="welcome-banner-copy">
+                    <h1>Welcome to Vic Chatbot</h1>
+                    <p>Admin dashboard</p>
+                </div>
             </div>
             <a class="button-link" href="index.html">Back to chat</a>
         </header>
