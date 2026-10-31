@@ -10,7 +10,7 @@ const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_LQE8u0QjUgfAHfT3iHpbYA_miu-Dnxk";
 
 const API_URL =
-    "http://127.0.0.1:8000";
+    "https://vic-chatbot-56hw.onrender.com";
 
 const supabaseClient =
     createClient(
