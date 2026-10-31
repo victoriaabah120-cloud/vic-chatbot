@@ -18,7 +18,10 @@
     <div id="authSection">
 
         <section id="loginForm">
-        <h1 class="brand-name">Vic Chatbot</h1>
+        <header class="welcome-banner login-welcome-banner">
+            <h1>Welcome to Vic Chatbot</h1>
+            <p>Your conversational AI assistant</p>
+        </header>
 
         <h2>Welcome</h2>
 
@@ -96,7 +99,7 @@
             </aside>
 
             <main id="chatMain">
-                <header id="chatHeader">
+                <header id="chatHeader" class="welcome-banner chat-welcome-banner">
                     <button
                         id="mobileMenuButton"
                         type="button"
@@ -106,7 +109,10 @@
                     >
                         Menu
                     </button>
-                    <h1 class="brand-name">Vic Chatbot</h1>
+                    <div class="welcome-banner-copy">
+                        <h1>Welcome to Vic Chatbot</h1>
+                        <p>Ask a question or start a conversation.</p>
+                    </div>
                 </header>
 
                 <div id="chat"></div>
@@ -118,10 +124,21 @@
                         placeholder="Type your message..."
                     >
 
+                    <button
+                        id="micButton"
+                        type="button"
+                        aria-label="Start voice input"
+                        aria-pressed="false"
+                        hidden
+                    >
+                        Mic
+                    </button>
+
                     <button id="sendButton">
                         Send
                     </button>
                 </div>
+                <p id="voiceStatus" role="status" aria-live="polite"></p>
             </main>
         </div>
     </div>
