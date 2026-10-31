@@ -10,7 +10,7 @@ const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_LQE8u0QjUgfAHfT3iHpbYA_miu-Dnxk";
 
 const API_URL =
-    "https://cuddly-capybara-p7jrpwgv547gh7v6p-8000.app.github.dev";
+    "http://127.0.0.1:8000";
 
 const supabaseClient =
     createClient(
