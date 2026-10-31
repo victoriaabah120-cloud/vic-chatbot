@@ -76,7 +76,7 @@ def make_title(message: str) -> str:
 
     try:
         response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system",
@@ -550,6 +550,7 @@ def chat(
         response = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             temperature=0.5,
+            reasoning_effort="low",
             messages=[
                 {
                     "role": "system",
