@@ -1,4 +1,5 @@
 import os
+import httpx
 import uuid
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -24,6 +25,8 @@ app.add_middleware(
 )
 
 load_dotenv()
+CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
+CF_API_TOKEN = os.getenv("CF_API_TOKEN")
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -43,6 +46,10 @@ def home():
 class ChatRequest(BaseModel):
     conversation_id: str
     message: str
+
+
+class ImageRequest(BaseModel):
+    prompt: str
 
 
 def create_conversation_id():
@@ -654,3 +661,95 @@ Plain-text and accuracy requirements:
     return {
         "message": answer
     }
+
+@app.post("/image")
+def generate_image(
+    request: ImageRequest,
+    authorization: str | None = Header(default=None),
+):
+    user = get_current_user(authorization)
+
+    prompt = request.prompt.strip()
+
+    if not prompt:
+        raise HTTPException(
+            status_code=400,
+            detail="Image prompt cannot be empty.",
+        )
+
+    if len(prompt) > 300:
+        raise HTTPException(
+            status_code=400,
+            detail="Image prompt must be 300 characters or fewer.",
+        )
+
+    if not CF_ACCOUNT_ID or not CF_API_TOKEN:
+        raise HTTPException(
+            status_code=500,
+            detail="Image generation is not configured.",
+        )
+
+    url = (
+        f"https://api.cloudflare.com/client/v4/accounts/"
+        f"{CF_ACCOUNT_ID}/ai/run/"
+        f"@cf/black-forest-labs/flux-1-schnell"
+    )
+
+    try:
+        response = httpx.post(
+            url,
+            headers={
+                "Authorization": f"Bearer {CF_API_TOKEN}",
+            },
+            json={
+                "prompt": prompt,
+                "steps": 4,
+            },
+            timeout=60,
+        )
+
+        if response.status_code == 429:
+            raise HTTPException(
+                status_code=429,
+                detail="Image generation limit reached. Please try again later.",
+            )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        if not data.get("success") or not data.get("result"):
+            raise HTTPException(
+                status_code=502,
+                detail="The image provider could not generate your image.",
+            )
+
+        image_b64 = data["result"].get("image")
+
+        if not image_b64:
+            raise HTTPException(
+                status_code=502,
+                detail="The image provider returned an invalid image.",
+            )
+
+        return {
+            "image": image_b64,
+        }
+
+    except httpx.TimeoutException as error:
+        raise HTTPException(
+            status_code=504,
+            detail="Image generation timed out. Please try again.",
+        ) from error
+
+    except httpx.HTTPStatusError as error:
+        raise HTTPException(
+            status_code=502,
+            detail="The image provider returned an error.",
+        ) from error
+
+    except httpx.RequestError as error:
+        raise HTTPException(
+            status_code=502,
+            detail="Could not connect to the image provider.",
+        ) from error
