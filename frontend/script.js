@@ -69,6 +69,12 @@ const messageInput =
 const sendButton =
     document.getElementById("sendButton");
 
+const micButton =
+    document.getElementById("micButton");
+
+const voiceStatus =
+    document.getElementById("voiceStatus");
+
 const conversationList =
     document.getElementById("conversationList");
 
@@ -110,6 +116,174 @@ const passwordResetMessage =
 
 const backToLoginButton =
     document.getElementById("backToLoginButton");
+
+
+// ==============================
+// SPEECH TO TEXT
+// ==============================
+
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    let isListening = false;
+
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    micButton.hidden = false;
+
+    micButton.addEventListener("click", () => {
+        voiceStatus.textContent = "";
+
+        if (isListening) {
+            recognition.stop();
+            return;
+        }
+
+        try {
+            recognition.start();
+        } catch {
+            voiceStatus.textContent =
+                "Voice input could not start. Please try again.";
+        }
+    });
+
+    recognition.onstart = () => {
+        isListening = true;
+        micButton.textContent = "Listening...";
+        micButton.setAttribute("aria-label", "Stop voice input");
+        micButton.setAttribute("aria-pressed", "true");
+        micButton.classList.add("is-listening");
+        voiceStatus.textContent = "Listening. Speak now.";
+    };
+
+    recognition.onresult = event => {
+        const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join(" ")
+            .trim();
+
+        if (transcript) {
+            messageInput.value = transcript;
+            messageInput.focus();
+            voiceStatus.textContent =
+                "Speech captured. Review it, then press Send.";
+        } else {
+            voiceStatus.textContent =
+                "No speech was heard. Please try again.";
+        }
+    };
+
+    recognition.onerror = event => {
+        const errors = {
+            "not-allowed": "Microphone access was blocked. Check browser permissions.",
+            "service-not-allowed": "Speech recognition is blocked by browser settings.",
+            "audio-capture": "No microphone was detected.",
+            "no-speech": "No speech was heard. Please try again.",
+            "network": "Speech recognition needs a network connection."
+        };
+
+        if (event.error !== "aborted") {
+            voiceStatus.textContent =
+                errors[event.error] || "Voice input failed. Please try again.";
+        }
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        micButton.textContent = "Mic";
+        micButton.setAttribute("aria-label", "Start voice input");
+        micButton.setAttribute("aria-pressed", "false");
+        micButton.classList.remove("is-listening");
+    };
+} else {
+    micButton.hidden = true;
+}
+
+const supportsSpeechSynthesis =
+    typeof window.speechSynthesis !== "undefined" &&
+    typeof window.SpeechSynthesisUtterance === "function";
+
+let activeSpeech = null;
+
+function cleanTextForSpeech(message) {
+    const parsedMessage = new DOMParser().parseFromString(
+        DOMPurify.sanitize(marked.parse(message, { breaks: true })),
+        "text/html"
+    );
+
+    parsedMessage
+        .querySelectorAll("a, img, pre, code")
+        .forEach(element => element.remove());
+
+    parsedMessage
+        .querySelectorAll("br, p, li, h1, h2, h3, h4, td, th")
+        .forEach(element => element.append(" "));
+
+    return parsedMessage.body.textContent
+        .replace(/(?:https?:\/\/|www\.)\S+/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function resetSpeechControls(speech) {
+    speech.readButton.textContent = "Read aloud";
+    speech.readButton.setAttribute("aria-pressed", "false");
+    speech.stopButton.hidden = true;
+}
+
+function stopSpeech() {
+    if (!activeSpeech) {
+        return;
+    }
+
+    const speech = activeSpeech;
+    activeSpeech = null;
+    window.speechSynthesis.cancel();
+    resetSpeechControls(speech);
+}
+
+function readReplyAloud(message, readButton, stopButton) {
+    if (activeSpeech?.readButton === readButton) {
+        stopSpeech();
+        return;
+    }
+
+    stopSpeech();
+
+    const spokenText = cleanTextForSpeech(message);
+    if (!spokenText) {
+        return;
+    }
+
+    const utterance = new window.SpeechSynthesisUtterance(spokenText);
+    const speech = { utterance, readButton, stopButton };
+    activeSpeech = speech;
+
+    readButton.textContent = "Stop reading";
+    readButton.setAttribute("aria-pressed", "true");
+    stopButton.hidden = false;
+
+    const finishSpeech = () => {
+        if (activeSpeech !== speech) {
+            return;
+        }
+
+        activeSpeech = null;
+        resetSpeechControls(speech);
+    };
+
+    utterance.onend = finishSpeech;
+    utterance.onerror = finishSpeech;
+
+    try {
+        window.speechSynthesis.speak(utterance);
+    } catch {
+        finishSpeech();
+    }
+}
 
 
 // ==============================
@@ -688,6 +862,32 @@ function addMessage(
     messageElement.appendChild(
         contentElement
     );
+
+    if (sender === "Vic" && supportsSpeechSynthesis) {
+        const speechControls =
+            document.createElement("div");
+        speechControls.className = "speech-controls";
+
+        const readButton =
+            document.createElement("button");
+        readButton.type = "button";
+        readButton.textContent = "Read aloud";
+        readButton.setAttribute("aria-pressed", "false");
+
+        const stopButton =
+            document.createElement("button");
+        stopButton.type = "button";
+        stopButton.textContent = "Stop";
+        stopButton.hidden = true;
+
+        readButton.addEventListener("click", () =>
+            readReplyAloud(message, readButton, stopButton)
+        );
+        stopButton.addEventListener("click", stopSpeech);
+
+        speechControls.append(readButton, stopButton);
+        messageElement.appendChild(speechControls);
+    }
 
     chat.appendChild(
         messageElement
