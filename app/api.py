@@ -689,6 +689,44 @@ def generate_image(
             detail="Image generation is not configured.",
         )
 
+    biology_terms = (
+        "cell", "biology", "biological", "anatomy", "anatomical",
+        "organ", "organism", "microscope", "microscopic", "bacteria",
+        "bacterium", "virus", "mitochondria", "mitochondrion",
+        "nucleus", "cytoplasm", "chloroplast", "tissue",
+        "photosynthesis", "ecosystem", "neuron", "chromosome",
+        "DNA", "plant cell", "animal cell", "human body",
+    )
+
+    prompt_lower = prompt.lower()
+
+    is_biology = any(
+        term.lower() in prompt_lower
+        for term in biology_terms
+    )
+
+    if is_biology:
+        enhanced_prompt = (
+            "Create a clear, accurate educational biology illustration "
+            "for a school science textbook. Scientific visual style, "
+            "realistic structures and proportions, clean composition, "
+            "plain light background, sharp details, no cartoon style, "
+            "no fantasy elements, no decorative effects. "
+            "Show the subject clearly and accurately. "
+            "If labels are requested, use simple readable labels. "
+            "Image subject: " + prompt
+        )
+    else:
+        enhanced_prompt = (
+            "Create a high-quality realistic photograph. "
+            "Natural lighting, realistic textures, accurate proportions, "
+            "professional photography, clear composition, "
+            "authentic details, natural colors. "
+            "Avoid cartoon, anime, illustration, plastic-looking surfaces, "
+            "excessive sharpening, and artificial visual effects. "
+            "Image subject: " + prompt
+        )
+
     url = (
         f"https://api.cloudflare.com/client/v4/accounts/"
         f"{CF_ACCOUNT_ID}/ai/run/"
@@ -702,7 +740,7 @@ def generate_image(
                 "Authorization": f"Bearer {CF_API_TOKEN}",
             },
             json={
-                "prompt": prompt,
+                "prompt": enhanced_prompt,
                 "steps": 4,
             },
             timeout=60,
