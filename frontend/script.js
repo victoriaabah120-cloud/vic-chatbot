@@ -28,8 +28,11 @@ const supabaseClient =
 // FASTAPI BACKEND
 // ==============================
 
-const API_URL =
-    "https://vic-chatbot-56hw.onrender.com";
+const API_URL = location.hostname.endsWith(".app.github.dev")
+    ? location.origin.replace("-5500.", "-8000.")
+    : location.hostname === "127.0.0.1" || location.hostname === "localhost"
+      ? "http://127.0.0.1:8000"
+      : "https://vic-chatbot-56hw.onrender.com";
 
 
 // ==============================
