@@ -1483,3 +1483,93 @@ messageInput.addEventListener(
 // ==============================
 
 checkSession();
+
+
+// ==============================
+// IMAGE GENERATION
+// ==============================
+
+const imageButton = document.getElementById("imageButton");
+
+imageButton.addEventListener("click", async function () {
+    const prompt = messageInput.value.trim();
+
+    if (!prompt) {
+        alert("Please describe the image you want to create.");
+        return;
+    }
+
+    imageButton.disabled = true;
+    sendButton.disabled = true;
+    imageButton.textContent = "Creating...";
+
+    try {
+        const {
+            data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        if (!session) {
+            alert("You are not logged in.");
+            return;
+        }
+
+        const response = await fetch(`${API_URL}/image`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ prompt })
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Image generation failed.";
+
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.detail || errorMessage;
+            } catch {}
+
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        if (!data.image) {
+            throw new Error("The server did not return an image.");
+        }
+
+        const chatContainer = document.getElementById("chat");
+
+        const imageCard = document.createElement("div");
+        imageCard.style.padding = "12px";
+        imageCard.style.margin = "12px 0";
+        imageCard.style.maxWidth = "600px";
+
+        const promptText = document.createElement("p");
+        promptText.textContent = "Generated image: " + prompt;
+
+        const generatedImage = document.createElement("img");
+        generatedImage.src = "data:image/png;base64," + data.image;
+        generatedImage.alt = prompt;
+        generatedImage.style.display = "block";
+        generatedImage.style.width = "100%";
+        generatedImage.style.maxWidth = "512px";
+        generatedImage.style.borderRadius = "12px";
+
+        imageCard.appendChild(promptText);
+        imageCard.appendChild(generatedImage);
+        chatContainer.appendChild(imageCard);
+
+        messageInput.value = "";
+        imageCard.scrollIntoView({ behavior: "smooth", block: "end" });
+
+    } catch (error) {
+        console.error("Image generation error:", error);
+        alert(error.message || "Something went wrong while creating the image.");
+    } finally {
+        imageButton.disabled = false;
+        sendButton.disabled = false;
+        imageButton.textContent = "Create Image";
+    }
+});

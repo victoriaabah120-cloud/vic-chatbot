@@ -743,9 +743,14 @@ def generate_image(
         ) from error
 
     except httpx.HTTPStatusError as error:
+        print(
+            "Cloudflare image error:",
+            error.response.status_code,
+            error.response.text[:1000],
+        )
         raise HTTPException(
             status_code=502,
-            detail="The image provider returned an error.",
+            detail="The image provider returned an error. Check the backend terminal.",
         ) from error
 
     except httpx.RequestError as error:
