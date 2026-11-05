@@ -623,11 +623,12 @@ Plain-text and accuracy requirements:
 - If you are unsure about a factual claim, say so instead of guessing.
 """
                 },
-                *history
+                *history[-12:]
             ]
         )
 
     except Exception as error:
+        print("CHAT ERROR:", repr(error))
         raise HTTPException(
             status_code=500,
             detail="Something went wrong while generating the response."
