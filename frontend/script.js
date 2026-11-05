@@ -32,7 +32,7 @@ const API_URL = location.hostname.endsWith(".app.github.dev")
     ? location.origin.replace("-5500.", "-8000.")
     : location.hostname === "127.0.0.1" || location.hostname === "localhost"
       ? "http://127.0.0.1:8000"
-      : "https://vic-chatbot-56hw.onrender.com";
+      : "https://vic-chatbot-3.onrender.com";
 
 
 // ==============================
@@ -1337,9 +1337,18 @@ async function sendMessage() {
                 errorText
             );
 
-            throw new Error(
-                "The chatbot server returned an error."
-            );
+            let friendlyMessage = "The chatbot server returned an error.";
+            const isFriendly = response.status === 413 || response.status === 429;
+            if (isFriendly) {
+                try {
+                    friendlyMessage = JSON.parse(errorText).detail || friendlyMessage;
+                } catch (parseError) {
+                    friendlyMessage = "Something went wrong. Please try again.";
+                }
+            }
+            const friendlyError = new Error(friendlyMessage);
+            friendlyError.friendly = isFriendly;
+            throw friendlyError;
         }
 
 
@@ -1362,7 +1371,9 @@ async function sendMessage() {
 
         addMessage(
             "Vic",
-            "Sorry, something went wrong. Please try again."
+            error.friendly
+                ? error.message
+                : "Sorry, something went wrong. Please try again."
         );
 
 
