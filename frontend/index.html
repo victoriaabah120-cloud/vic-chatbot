@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 
 <body class="auth-page">
@@ -186,6 +186,17 @@
                 <div id="chat"></div>
 
                 <div id="messageArea">
+                    <div id="composerActions">
+                        <button id="imageButton" type="button" aria-label="Create an image from your prompt">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
+                                <circle cx="9" cy="10" r="1.6" />
+                                <path d="M4.5 17l4.6-4.2 3.4 3 3-2.6 4 3.8" />
+                            </svg>
+                            <span id="imageButtonLabel">Create Image</span>
+                        </button>
+                    </div>
+
                     <div id="composerBar">
                         <button
                             id="composerPlusButton"
@@ -231,13 +242,11 @@
                         </button>
 
                         <div id="composerMenu" role="menu" aria-label="More actions" hidden>
-                            <button id="imageButton" type="button" role="menuitem">
+                            <button id="composerNewChatButton" type="button" role="menuitem">
                                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
-                                    <circle cx="9" cy="10" r="1.6" />
-                                    <path d="M4.5 17l4.6-4.2 3.4 3 3-2.6 4 3.8" />
+                                    <path d="M12 6v12M6 12h12" />
                                 </svg>
-                                <span id="imageButtonLabel">Create Image</span>
+                                <span>New conversation</span>
                             </button>
                         </div>
                     </div>
@@ -249,7 +258,7 @@
 
 
     <!-- Our JavaScript -->
-    <script type="module" src="script.js?v=11"></script>
+    <script type="module" src="script.js?v=12"></script>
     <script type="module" src="promo.js?v=1"></script>
 
 </body>

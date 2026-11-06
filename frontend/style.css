@@ -1071,6 +1071,92 @@ a {
     stroke-linejoin: round;
 }
 
+/* Create Image stays visible above the bar, never hidden in a menu */
+#composerActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+}
+
+#imageButton {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 0;
+    padding: 7px 13px;
+    border: 1px solid var(--surface-border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+#imageButton:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(139, 92, 246, 0.16);
+    color: var(--text);
+    transform: none;
+}
+
+#imageButton:disabled {
+    opacity: 0.7;
+}
+
+#imageButton svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Generated images, both fresh and rebuilt from history */
+.chat-image-card {
+    max-width: 512px;
+    margin: 12px 0;
+    padding: 12px;
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.chat-image-card p {
+    margin: 0 0 10px;
+    color: var(--text-soft);
+    font-size: 0.85rem;
+}
+
+.chat-image-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.chat-image-card .chat-image-missing {
+    margin: 0;
+    padding: 22px 16px;
+    border: 1px dashed var(--surface-border);
+    border-radius: 10px;
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.chat-image-warning {
+    margin: 8px 0 0;
+    color: var(--text-soft);
+    font-size: 0.78rem;
+}
+
 #messageInput {
     width: 100%;
     min-width: 0;
@@ -2312,5 +2398,22 @@ a {
 
     #composerMenu {
         min-width: 168px;
+    }
+}
+
+@media (max-width: 600px) {
+    #composerActions {
+        margin-bottom: 6px;
+    }
+
+    #imageButton {
+        min-height: 32px;
+        padding: 6px 11px;
+        font-size: 0.8rem;
+    }
+
+    .chat-image-card {
+        max-width: 100%;
+        padding: 9px;
     }
 }

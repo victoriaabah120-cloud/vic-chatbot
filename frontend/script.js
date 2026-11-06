@@ -849,6 +849,100 @@ function formatResponse(message) {
 // ADD MESSAGE TO CHAT
 // ==============================
 
+// ==============================
+// GENERATED IMAGE CARDS
+// ==============================
+
+function renderImageCard({
+    prompt,
+    src,
+    available = true,
+    warning = ""
+}) {
+
+    const card =
+        document.createElement("div");
+
+    card.className = "chat-image-card";
+
+    if (prompt) {
+        const promptText =
+            document.createElement("p");
+
+        promptText.textContent =
+            "Generated image: " + prompt;
+
+        card.appendChild(promptText);
+    }
+
+    if (available && src) {
+
+        const image =
+            document.createElement("img");
+
+        image.src = src;
+        image.alt = prompt
+            ? "Generated image: " + prompt
+            : "Generated image";
+        image.loading = "lazy";
+        image.decoding = "async";
+
+        // History could point at an image that was deleted from storage.
+        image.addEventListener("error", () => {
+            image.replaceWith(buildMissingImageNotice());
+        });
+
+        card.appendChild(image);
+
+    } else {
+
+        card.appendChild(
+            buildMissingImageNotice()
+        );
+    }
+
+    if (warning) {
+
+        const warningText =
+            document.createElement("p");
+
+        warningText.className =
+            "chat-image-warning";
+
+        warningText.textContent = warning;
+
+        card.appendChild(warningText);
+    }
+
+    return card;
+}
+
+function buildMissingImageNotice() {
+
+    const notice =
+        document.createElement("p");
+
+    notice.className = "chat-image-missing";
+    notice.textContent =
+        "This image is no longer available.";
+
+    return notice;
+}
+
+function appendImageCard(details) {
+
+    const card =
+        renderImageCard(details);
+
+    chat.appendChild(card);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+    return card;
+}
+
+
 function addMessage(
     sender,
     message
@@ -1222,11 +1316,36 @@ async function openConversation(selectedConversationId) {
                 );
             }
 
+            if (message.image) {
+
+                chat.appendChild(
+                    renderImageCard({
+                        prompt: message.image.prompt || "",
+                        src: message.image.url || "",
+                        available:
+                            message.image.available !== false &&
+                            Boolean(message.image.url)
+                    })
+                );
+
+                return;
+            }
+
+            // Never render a raw storage marker if one ever reaches us.
+            if (
+                typeof message.content === "string" &&
+                message.content.startsWith("[[vic-image]]")
+            ) {
+                return;
+            }
+
             addMessage(
                 message.role === "assistant" ? "Vic" : "You",
                 message.content
             );
         });
+
+        chat.scrollTop = chat.scrollHeight;
 
     } catch (error) {
 
@@ -1529,8 +1648,15 @@ if (composerPlusButton && composerMenu) {
     });
 
     composerMenu.addEventListener("click", event => {
-        if (event.target.closest("button")) {
-            closeComposerMenu();
+        if (!event.target.closest("button")) {
+            return;
+        }
+
+        closeComposerMenu();
+
+        if (event.target.closest("#composerNewChatButton")) {
+            startNewConversation();
+            messageInput.focus();
         }
     });
 
@@ -1591,6 +1717,9 @@ checkSession();
 
 const imageButton = document.getElementById("imageButton");
 
+const imageButtonLabel =
+    document.getElementById("imageButtonLabel");
+
 imageButton.addEventListener("click", async function () {
     const prompt = messageInput.value.trim();
 
@@ -1601,8 +1730,6 @@ imageButton.addEventListener("click", async function () {
 
     imageButton.disabled = true;
     sendButton.disabled = true;
-    const imageButtonLabel =
-        document.getElementById("imageButtonLabel");
 
     if (imageButtonLabel) {
         imageButtonLabel.textContent = "Creating...";
@@ -1618,13 +1745,21 @@ imageButton.addEventListener("click", async function () {
             return;
         }
 
+        // Images are saved against a conversation, so make sure one exists.
+        if (!conversationId) {
+            await createConversation(session.access_token);
+        }
+
         const response = await fetch(`${API_URL}/image`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${session.access_token}`
             },
-            body: JSON.stringify({ prompt })
+            body: JSON.stringify({
+                prompt,
+                conversation_id: conversationId
+            })
         });
 
         if (!response.ok) {
@@ -1644,27 +1779,12 @@ imageButton.addEventListener("click", async function () {
             throw new Error("The server did not return an image.");
         }
 
-        const chatContainer = document.getElementById("chat");
-
-        const imageCard = document.createElement("div");
-        imageCard.style.padding = "12px";
-        imageCard.style.margin = "12px 0";
-        imageCard.style.maxWidth = "600px";
-
-        const promptText = document.createElement("p");
-        promptText.textContent = "Generated image: " + prompt;
-
-        const generatedImage = document.createElement("img");
-        generatedImage.src = "data:image/png;base64," + data.image;
-        generatedImage.alt = prompt;
-        generatedImage.style.display = "block";
-        generatedImage.style.width = "100%";
-        generatedImage.style.maxWidth = "512px";
-        generatedImage.style.borderRadius = "12px";
-
-        imageCard.appendChild(promptText);
-        imageCard.appendChild(generatedImage);
-        chatContainer.appendChild(imageCard);
+        appendImageCard({
+            prompt,
+            src: "data:image/png;base64," + data.image,
+            available: true,
+            warning: data.warning || ""
+        });
 
         messageInput.value = "";
 
@@ -1672,7 +1792,10 @@ imageButton.addEventListener("click", async function () {
             syncComposerSendState();
         }
 
-        imageCard.scrollIntoView({ behavior: "smooth", block: "end" });
+        // Keep the sidebar in step with the new conversation.
+        if (data.stored) {
+            loadConversationHistory().catch(() => {});
+        }
 
     } catch (error) {
         console.error("Image generation error:", error);

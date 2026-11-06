@@ -1,3 +1,4 @@
+import base64
 import os
 import httpx
 import uuid
@@ -9,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 
+from app import images as image_store
 from app.integrations.agent import run_chat_with_plugins
 from app.integrations.router import router as integrations_router
 
@@ -55,6 +57,7 @@ class ChatRequest(BaseModel):
 
 class ImageRequest(BaseModel):
     prompt: str
+    conversation_id: str | None = None
 
 
 def create_conversation_id():
@@ -501,7 +504,7 @@ def list_conversation_messages(
             detail="Conversation not found.",
         )
 
-    messages = (
+    stored = (
         supabase.table("messages")
         .select("role,content")
         .eq("conversation_id", conversation_id)
@@ -509,8 +512,38 @@ def list_conversation_messages(
         .execute()
     )
 
+    messages = []
+
+    for message in stored.data or []:
+        content = message.get("content")
+
+        # A saved image is re-signed on every load, so the picture still
+        # appears after logging out, refreshing or switching devices.
+        if image_store.is_image_message(content):
+            image = image_store.parse_image_message(content)
+            url = image_store.signed_url(
+                supabase,
+                image["path"] if image else None,
+            )
+
+            messages.append({
+                "role": "assistant",
+                "content": "",
+                "image": {
+                    "prompt": (image or {}).get("prompt", ""),
+                    "url": url,
+                    "available": bool(url),
+                },
+            })
+            continue
+
+        messages.append({
+            "role": message.get("role"),
+            "content": content or "",
+        })
+
     return {
-        "messages": messages.data
+        "messages": messages
     }
 
 
@@ -547,6 +580,7 @@ def chat(
     history = [
         {"role": message["role"], "content": message["content"]}
         for message in stored_messages.data
+        if not image_store.is_image_message(message.get("content"))
     ]
 
     user_message = {
@@ -669,6 +703,20 @@ Plain-text and accuracy requirements:
         "message": answer
     }
 
+@app.get("/image/status")
+def image_status(authorization: str | None = Header(default=None)):
+    """Report whether generated images can be stored for this deployment."""
+
+    get_current_user(authorization)
+
+    ready = image_store.ensure_bucket(supabase)
+
+    return {
+        "bucket": image_store.IMAGE_BUCKET,
+        "ready": ready,
+    }
+
+
 @app.post("/image")
 def generate_image(
     request: ImageRequest,
@@ -777,8 +825,67 @@ def generate_image(
                 detail="The image provider returned an invalid image.",
             )
 
+        stored_path = None
+        stored_url = None
+        warning = None
+
+        if request.conversation_id:
+            conversation = (
+                supabase.table("conversations")
+                .select("id")
+                .eq("id", request.conversation_id)
+                .eq("user_id", user.id)
+                .limit(1)
+                .execute()
+            )
+            if not conversation.data:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Conversation not found.",
+                )
+
+            try:
+                png_bytes = base64.b64decode(image_b64)
+            except Exception:  # noqa: BLE001 - provider sent something odd
+                png_bytes = b""
+
+            if png_bytes:
+                stored_path = image_store.save_image(
+                    supabase,
+                    user.id,
+                    request.conversation_id,
+                    png_bytes,
+                )
+
+            if stored_path:
+                # The row is written before the request succeeds, so the
+                # image is in history even if the browser closes straight away.
+                supabase.table("messages").insert({
+                    "conversation_id": request.conversation_id,
+                    "role": "assistant",
+                    "content": image_store.build_message_content(
+                        stored_path,
+                        prompt,
+                    ),
+                }).execute()
+                stored_url = image_store.signed_url(supabase, stored_path)
+            else:
+                warning = (
+                    "This image could not be saved to your conversation "
+                    "history. It will disappear when you reload the page."
+                )
+        else:
+            warning = (
+                "No conversation was supplied, so this image was not saved "
+                "to your history."
+            )
+
         return {
             "image": image_b64,
+            "stored": bool(stored_path),
+            "image_url": stored_url,
+            "prompt": prompt,
+            "warning": warning,
         }
 
     except httpx.TimeoutException as error:
