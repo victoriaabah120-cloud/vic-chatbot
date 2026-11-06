@@ -1679,6 +1679,18 @@ a {
     text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
 }
 
+/* Blinking caret that trails the typed headline. */
+.promo-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    margin-left: 4px;
+    background: var(--accent-hover);
+    vertical-align: -0.06em;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.9);
+    animation: promo-caret 1.05s steps(1) infinite;
+}
+
 /* Staggered entrance for the copy block. The per-line highlight cycle keeps
    driving off .is-active, so this only sets the first reveal. */
 @keyframes promo-rise {
@@ -2719,7 +2731,8 @@ a {
     .robot-ring::before,
     .promo-rays,
     .promo-particles span,
-    .promo-brand-dot {
+    .promo-brand-dot,
+    .promo-caret {
         animation: none !important;
     }
 
