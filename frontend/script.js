@@ -140,6 +140,22 @@ const backToLoginButton =
 const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// The button always stays on screen; browsers without the Web Speech API
+// (Firefox, for example) get a short explanation instead of a missing icon.
+if (!SpeechRecognition) {
+    micButton.classList.add("is-unavailable");
+    micButton.title = "Voice input needs Chrome, Edge or Safari";
+    micButton.setAttribute(
+        "aria-label",
+        "Voice input is not available in this browser"
+    );
+
+    micButton.addEventListener("click", () => {
+        voiceStatus.textContent =
+            "Voice input isn't available in this browser. Try Chrome, Edge or Safari.";
+    });
+}
+
 if (SpeechRecognition) {
     const recognition = new SpeechRecognition();
     let isListening = false;
@@ -147,7 +163,6 @@ if (SpeechRecognition) {
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.continuous = false;
-    micButton.hidden = false;
 
     micButton.addEventListener("click", () => {
         voiceStatus.textContent = "";
@@ -217,8 +232,6 @@ if (SpeechRecognition) {
         micButton.setAttribute("aria-pressed", "false");
         micButton.classList.remove("is-listening");
     };
-} else {
-    micButton.hidden = true;
 }
 
 const supportsSpeechSynthesis =

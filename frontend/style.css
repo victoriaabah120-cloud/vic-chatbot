@@ -1187,6 +1187,11 @@ a {
     color: var(--text-soft);
 }
 
+#micButton.is-unavailable {
+    color: var(--text-soft);
+    opacity: 0.55;
+}
+
 #micButton.is-listening {
     background: var(--accent);
     color: var(--text);
