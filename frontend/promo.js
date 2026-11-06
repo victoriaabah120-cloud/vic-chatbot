@@ -7,7 +7,25 @@ const robot = document.querySelector(".robot");
 const reducedMotion =
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const REVEAL_MS = 900;
+// The headline is set in the markup now instead of typing a character at a
+// time, but the panel keeps the exact beat of the typing build so the robot's
+// gestures keep the rhythm they had before: same lead-in, same spacing, same
+// restart gap. Do not shorten this without changing the robot's choreography.
+const TYPE_MS = 42;
+const SPACE_PAUSE_MS = TYPE_MS * 2.6;
+const LEGACY_HEADLINE = "AI IS A TOOL, NOT YOUR BRAIN.";
+const TYPING_LEAD_MS = 320;
+const TYPING_TAIL_MS = 520;
+
+const TYPING_PAUSE_MS = LEGACY_HEADLINE
+    .split("")
+    .reduce(
+        (total, char) => total + (char === " " ? SPACE_PAUSE_MS : TYPE_MS),
+        0
+    );
+
+const REVEAL_MS = TYPING_LEAD_MS + TYPING_PAUSE_MS + TYPING_TAIL_MS;
+
 const LINE_MS = 1650;
 const HOLD_MS = 3600;
 
@@ -45,7 +63,8 @@ async function runPromo() {
 
         resetPromo();
 
-        // Let the copy block fade in before the statements start cycling.
+        // The copy block fades in during this pause, so the first gesture still
+        // lands where it did in the typing build.
         await sleep(REVEAL_MS);
 
         for (let index = 0; index < promoLines.length; index += 1) {

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vic Chatbot</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=22">
+</head>
+
+<body class="auth-page">
+
+    <!-- Authentication section -->
+    <div id="authSection">
+
+        <aside class="auth-promo" aria-label="About Vic Chatbot">
+
+            <div class="promo-rays" aria-hidden="true"></div>
+            <div class="promo-particles" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+            </div>
+
+            <div class="promo-brand">
+                <span class="promo-brand-dot" aria-hidden="true"></span>
+                <span>VIC CHATBOT</span>
+            </div>
+
+            <div class="promo-copy">
+                <h2 class="promo-headline">
+                    <span id="promoHeadlineText">AI IS A TOOL, NOT YOUR BRAIN.</span><span class="promo-caret" aria-hidden="true"></span>
+                </h2>
+
+                <ul class="promo-lines">
+                    <li>Think critically.</li>
+                    <li>Create with purpose.</li>
+                    <li>Your ideas. Your intelligence. Your AI.</li>
+                </ul>
+            </div>
+
+            <div class="robot-stage" aria-hidden="true">
+                <span class="robot-floor"></span>
+                <span class="robot-reflection"></span>
+                <div class="robot" data-step="0">
+                    <span class="robot-inner">
+                        <span class="robot-halo"></span>
+                        <span class="robot-orbit"></span>
+                        <span class="robot-orbit-front"></span>
+                        <span class="robot-ring"></span>
+
+                        <span class="robot-head">
+                            <span class="robot-antenna"></span>
+                            <span class="robot-ear robot-ear-left"></span>
+                            <span class="robot-ear robot-ear-right"></span>
+                            <span class="robot-visor">
+                                <span class="robot-eye"></span>
+                                <span class="robot-eye"></span>
+                            </span>
+                        </span>
+
+                        <span class="robot-neck"></span>
+
+                        <span class="robot-torso">
+                            <span class="robot-chest"></span>
+                            <span class="robot-shoulder robot-shoulder-left"></span>
+                            <span class="robot-shoulder robot-shoulder-right"></span>
+                        </span>
+
+                        <span class="robot-arm robot-arm-left">
+                            <span class="robot-forearm"></span>
+                        </span>
+
+                        <span class="robot-arm robot-arm-right">
+                            <span class="robot-forearm"></span>
+                        </span>
+
+                        <span class="robot-legs">
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </span>
+                </div>
+
+                <span class="robot-shadow"></span>
+            </div>
+        </aside>
+
+        <div id="authPanel">
+
+        <section id="loginForm">
+        <header class="welcome-banner login-welcome-banner">
+            <h1>Welcome to Vic Chatbot</h1>
+            <p>Your conversational AI assistant</p>
+        </header>
+
+        <h2>Welcome</h2>
+
+        <input
+            id="emailInput"
+            type="email"
+            placeholder="Enter your email"
+        >
+
+        <input
+            id="passwordInput"
+            type="password"
+            placeholder="Enter your password"
+        >
+
+        <button id="signUpButton">
+            Sign Up
+        </button>
+
+
+        <button id="loginButton">
+            Log In
+        </button>
+
+        <p><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
+        <p id="authMessage" role="status"></p>
+
+        </section>
+
+        <section id="resetRequestSection" hidden>
+            <h2>Reset your password</h2>
+            <form id="resetRequestForm">
+                <label for="resetEmailInput">Email address</label>
+                <input
+                    id="resetEmailInput"
+                    type="email"
+                    autocomplete="email"
+                    required
+                >
+                <button id="requestPasswordResetButton" type="submit">
+                    Send reset link
+                </button>
+            </form>
+            <p id="passwordResetMessage" role="status"></p>
+            <button id="backToLoginButton" type="button">
+                Back to login
+            </button>
+        </section>
+
+        </div>
+
+    </div>
+
+
+    <!-- Chat section -->
+    <div id="chatSection" style="display: none;">
+
+        <div id="chatLayout">
+            <aside id="conversationSidebar">
+                <button id="newConversationButton" type="button">
+                    New chat
+                </button>
+                <h2>Conversations</h2>
+                <p id="conversationHistoryMessage" role="status">
+                    Loading conversations...
+                </p>
+                <ul id="conversationList"></ul>
+                <div class="sidebar-footer">
+                    <button id="logoutButton" type="button">
+                        Log Out
+                    </button>
+                    <a id="pluginsLink" href="integrations.html">
+                        Plugins
+                    </a>
+                    <a id="adminDashboardLink" href="admin.html" hidden>
+                        Admin dashboard
+                    </a>
+                </div>
+            </aside>
+
+            <main id="chatMain">
+                <header id="chatHeader" class="welcome-banner chat-welcome-banner">
+                    <button
+                        id="mobileMenuButton"
+                        type="button"
+                        aria-controls="conversationSidebar"
+                        aria-expanded="false"
+                        aria-label="Open conversation menu"
+                    >
+                        Menu
+                    </button>
+                    <div class="welcome-banner-copy">
+                        <h1>Welcome to Vic Chatbot</h1>
+                        <p>Ask a question or start a conversation.</p>
+                    </div>
+                </header>
+
+                <div id="chat"></div>
+
+                <div id="messageArea">
+                    <div id="composerActions">
+                        <button id="imageButton" type="button" aria-label="Create an image from your prompt">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
+                                <circle cx="9" cy="10" r="1.6" />
+                                <path d="M4.5 17l4.6-4.2 3.4 3 3-2.6 4 3.8" />
+                            </svg>
+                            <span id="imageButtonLabel">Create Image</span>
+                        </button>
+                    </div>
+
+                    <div id="composerBar">
+                        <button
+                            id="composerPlusButton"
+                            type="button"
+                            aria-label="More actions"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="composerMenu"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                        </button>
+
+                        <input
+                            id="messageInput"
+                            type="text"
+                            placeholder="Ask Vic"
+                            autocomplete="off"
+                            enterkeyhint="send"
+                        >
+
+                        <button
+                            id="micButton"
+                            type="button"
+                            aria-label="Start voice input"
+                            aria-pressed="false"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M12 4a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V7a3 3 0 0 1 3-3z" />
+                                <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
+                                <path d="M12 18v3" />
+                            </svg>
+                            <span class="sr-only" id="micButtonLabel">Mic</span>
+                        </button>
+
+                        <button id="sendButton" type="button" aria-label="Send message" class="is-empty">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M12 19V5" />
+                                <path d="M6 11l6-6 6 6" />
+                            </svg>
+                        </button>
+
+                        <div id="composerMenu" role="menu" aria-label="More actions" hidden>
+                            <button id="composerNewChatButton" type="button" role="menuitem">
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M12 6v12M6 12h12" />
+                                </svg>
+                                <span>New conversation</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <p id="voiceStatus" role="status" aria-live="polite"></p>
+            </main>
+        </div>
+    </div>
+
+
+    <!-- Our JavaScript -->
+    <script type="module" src="script.js?v=15"></script>
+    <script type="module" src="promo.js?v=1"></script>
+
+</body>
+</html>
