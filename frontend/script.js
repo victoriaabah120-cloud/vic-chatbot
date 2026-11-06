@@ -36,6 +36,116 @@ const API_URL = location.hostname.endsWith(".app.github.dev")
 
 
 // ==============================
+// SESSION-AWARE API CALLS
+// ==============================
+
+// A phone that has been asleep for a while can hold an access token that has
+// already expired. The backend then answers 401, which used to surface as
+// "Could not load conversation history" and a vague chat error. Refresh first,
+// retry once, and only then ask the person to log in again.
+
+async function getActiveSession() {
+
+    const {
+        data: {
+            session
+        },
+        error
+    } =
+        await supabaseClient.auth.getSession();
+
+    if (error || !session) {
+        return null;
+    }
+
+    const expiresAt =
+        session.expires_at
+            ? session.expires_at * 1000
+            : 0;
+
+    if (expiresAt && expiresAt - Date.now() < 120000) {
+
+        const {
+            data: refreshed
+        } =
+            await supabaseClient.auth.refreshSession();
+
+        if (refreshed && refreshed.session) {
+            return refreshed.session;
+        }
+    }
+
+    return session;
+}
+
+
+async function fetchWithAuth(url, options = {}) {
+
+    const build = session => {
+
+        const headers =
+            new Headers(options.headers || {});
+
+        if (session && session.access_token) {
+
+            headers.set(
+                "Authorization",
+                "Bearer " + session.access_token
+            );
+
+        } else {
+
+            headers.delete("Authorization");
+        }
+
+        return {
+            ...options,
+            headers
+        };
+    };
+
+    let session =
+        await getActiveSession();
+
+    let response =
+        await fetch(url, build(session));
+
+    if (response.status === 401) {
+
+        const {
+            data: refreshed
+        } =
+            await supabaseClient.auth.refreshSession();
+
+        if (refreshed && refreshed.session) {
+
+            session = refreshed.session;
+
+            response =
+                await fetch(url, build(session));
+        }
+    }
+
+    return response;
+}
+
+
+async function handleExpiredSession() {
+
+    await supabaseClient.auth.signOut({
+        scope: "local"
+    });
+
+    conversationId = null;
+
+    showAuth();
+
+    authMessage.textContent =
+        "Your session expired. Please log in again.";
+}
+
+
+// ==============================
 // HTML ELEMENTS
 // ==============================
 
@@ -1033,15 +1143,10 @@ async function createConversation(
 ) {
 
     const response =
-        await fetch(
+        await fetchWithAuth(
             `${API_URL}/conversation`,
             {
-                method: "POST",
-
-                headers: {
-                    "Authorization":
-                        `Bearer ${accessToken}`
-                }
+                method: "POST"
             }
         );
 
@@ -1127,18 +1232,22 @@ async function loadConversationHistory(openMostRecent = false) {
         }
 
         const response =
-            await fetch(
-                `${API_URL}/conversations`,
-                {
-                    headers: {
-                        "Authorization":
-                            "Bearer " + session.access_token
-                    }
-                }
+            await fetchWithAuth(
+                `${API_URL}/conversations`
             );
 
         if (!response.ok) {
-            await handleAccountSuspended(response);
+
+            if (await handleAccountSuspended(response)) {
+                return;
+            }
+
+            if (response.status === 401) {
+
+                await handleExpiredSession();
+
+                return;
+            }
 
             throw new Error(
                 "Could not load conversation history."
@@ -1282,14 +1391,8 @@ async function openConversation(selectedConversationId) {
         }
 
         const response =
-            await fetch(
-                `${API_URL}/conversation/${encodeURIComponent(requestedConversationId)}/messages`,
-                {
-                    headers: {
-                        "Authorization":
-                            "Bearer " + session.access_token
-                    }
-                }
+            await fetchWithAuth(
+                `${API_URL}/conversation/${encodeURIComponent(requestedConversationId)}/messages`
             );
 
         if (!response.ok) {
@@ -1450,17 +1553,14 @@ async function sendMessage() {
 
         // Send message to FastAPI
         const response =
-            await fetch(
+            await fetchWithAuth(
                 `${API_URL}/chat`,
                 {
                     method: "POST",
 
                     headers: {
                         "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            `Bearer ${accessToken}`
+                            "application/json"
                     },
 
                     body: JSON.stringify({
@@ -1479,6 +1579,17 @@ async function sendMessage() {
 
             if (await handleAccountSuspended(response)) {
                 return;
+            }
+
+            if (response.status === 401) {
+
+                const expiredError = new Error(
+                    "Your session expired. Please log in again."
+                );
+
+                expiredError.sessionExpired = true;
+
+                throw expiredError;
             }
 
             const errorText =
@@ -1520,6 +1631,13 @@ async function sendMessage() {
             "Chat error:",
             error
         );
+
+        if (error.sessionExpired) {
+
+            await handleExpiredSession();
+
+            return;
+        }
 
         addMessage(
             "Vic",
@@ -1763,11 +1881,10 @@ imageButton.addEventListener("click", async function () {
             await createConversation(session.access_token);
         }
 
-        const response = await fetch(`${API_URL}/image`, {
+        const response = await fetchWithAuth(`${API_URL}/image`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${session.access_token}`
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 prompt,
