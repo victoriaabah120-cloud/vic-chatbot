@@ -1649,27 +1649,60 @@ a {
     position: relative;
     z-index: 3;
     max-width: 27rem;
+    overflow-wrap: break-word;
+}
+
+/* Main headline: the largest thing in the panel. Near-white with a violet
+   bloom so it stays readable while belonging to the purple theme. */
+.promo-headline {
+    margin: 0 0 10px;
+    color: #F8F5FF;
+    font-size: clamp(1.9rem, 2.9vw, 2.95rem);
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    line-height: 1.06;
+    text-wrap: balance;
+    text-shadow:
+        0 0 30px rgba(168, 85, 247, 0.5),
+        0 0 70px rgba(124, 58, 237, 0.3);
+}
+
+/* Secondary headline: clearly smaller than the main one, still bold and
+   comfortably sized, in the lavender step of the same palette. */
+.promo-subhead {
+    margin: 0 0 18px;
+    color: #E9D5FF;
+    font-size: clamp(1.02rem, 1.45vw, 1.32rem);
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    line-height: 1.25;
+    text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Staggered entrance for the copy block. The per-line highlight cycle keeps
+   driving off .is-active, so this only sets the first reveal. */
+@keyframes promo-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .promo-headline {
-    margin: 0 0 16px;
-    color: var(--text);
-    font-size: clamp(1.6rem, 2.35vw, 2.5rem);
-    font-weight: 800;
-    letter-spacing: -0.038em;
-    line-height: 1.08;
-    text-transform: uppercase;
-    text-shadow: 0 0 46px rgba(139, 92, 246, 0.35);
+    animation: promo-rise 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
-.promo-caret {
-    display: inline-block;
-    width: 2px;
-    height: 0.92em;
-    margin-left: 5px;
-    background: var(--accent-hover);
-    vertical-align: -0.08em;
-    animation: promo-caret 1.05s steps(1) infinite;
+.promo-subhead {
+    animation: promo-rise 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.16s both;
+}
+
+.promo-lines {
+    animation: promo-rise 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.32s both;
 }
 
 .promo-lines {
@@ -2439,7 +2472,12 @@ a {
     }
 
     .promo-headline {
-        font-size: clamp(1.4rem, 2.1vw, 2rem);
+        font-size: clamp(1.5rem, 2.3vw, 2.1rem);
+    }
+
+    .promo-subhead {
+        margin-bottom: 14px;
+        font-size: clamp(0.95rem, 1.35vw, 1.12rem);
     }
 
     .promo-lines {
@@ -2466,7 +2504,12 @@ a {
     }
 
     .promo-headline {
-        font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+        font-size: clamp(1.28rem, 2.5vw, 1.72rem);
+    }
+
+    .promo-subhead {
+        margin-bottom: 12px;
+        font-size: clamp(0.88rem, 1.5vw, 1.04rem);
     }
 
     .promo-lines {
@@ -2494,11 +2537,16 @@ a {
     }
 
     .promo-headline {
-        font-size: clamp(1rem, 2.6vw, 1.45rem);
+        font-size: clamp(1.08rem, 2.7vw, 1.5rem);
+    }
+
+    .promo-subhead {
+        margin-bottom: 10px;
+        font-size: clamp(0.8rem, 1.7vw, 0.96rem);
     }
 
     .promo-lines {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
     }
 
     .robot-stage {
@@ -2529,7 +2577,15 @@ a {
     }
 
     .promo-headline {
-        font-size: clamp(0.92rem, 3.4vw, 1.15rem);
+        font-size: clamp(0.94rem, 3.5vw, 1.18rem);
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+    }
+
+    .promo-subhead {
+        margin-bottom: 8px;
+        font-size: clamp(0.72rem, 2.4vw, 0.88rem);
+        line-height: 1.22;
     }
 
     .promo-lines {
@@ -2572,8 +2628,15 @@ a {
     }
 
     .promo-headline {
-        font-size: clamp(0.8rem, 3.5vw, 0.95rem);
-        letter-spacing: 0.02em;
+        font-size: clamp(0.82rem, 3.6vw, 0.98rem);
+        letter-spacing: -0.015em;
+        line-height: 1.12;
+    }
+
+    .promo-subhead {
+        margin-bottom: 7px;
+        font-size: clamp(0.66rem, 2.5vw, 0.78rem);
+        line-height: 1.2;
     }
 
     .promo-lines {
@@ -2611,7 +2674,15 @@ a {
     }
 
     .promo-headline {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
+        letter-spacing: -0.012em;
+        line-height: 1.1;
+    }
+
+    .promo-subhead {
+        margin-bottom: 6px;
+        font-size: 0.64rem;
+        line-height: 1.18;
     }
 
     .promo-lines {
@@ -2648,7 +2719,6 @@ a {
     .robot-ring::before,
     .promo-rays,
     .promo-particles span,
-    .promo-caret,
     .promo-brand-dot {
         animation: none !important;
     }
@@ -2660,6 +2730,12 @@ a {
     .promo-lines li {
         opacity: 1;
         transform: none;
+    }
+
+    .promo-headline,
+    .promo-subhead,
+    .promo-lines {
+        animation: none;
     }
 }
 
