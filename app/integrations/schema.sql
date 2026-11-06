@@ -36,3 +36,17 @@ create policy "Users delete their own integrations"
 
 -- No insert/update policy on purpose: tokens are only written by the
 -- backend so a client can never hand itself someone else's token.
+
+-- One-time codes used by bot-style providers (Telegram /start deep links).
+create table if not exists public.integration_link_codes (
+    code text primary key,
+    user_id uuid not null references auth.users (id) on delete cascade,
+    provider text not null,
+    expires_at timestamptz not null,
+    used boolean not null default false,
+    created_at timestamptz not null default now()
+);
+
+alter table public.integration_link_codes enable row level security;
+
+-- No policies: codes are created and consumed by the backend only.

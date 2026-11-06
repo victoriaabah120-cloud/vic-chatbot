@@ -55,3 +55,14 @@ def get_current_user_and_client(authorization: str | None):
 
 def require_user(authorization: str | None = Header(default=None)):
     return get_current_user_and_client(authorization)
+
+
+def require_admin(authorization: str | None = Header(default=None)):
+    supabase, user = get_current_user_and_client(authorization)
+    app_metadata = getattr(user, "app_metadata", None) or {}
+    if app_metadata.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access is required.",
+        )
+    return supabase, user

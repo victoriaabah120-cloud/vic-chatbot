@@ -167,6 +167,30 @@ async function startConnection(integration) {
     try {
         const data = await api(`/integrations/${integration.id}/start`);
 
+        // Bot providers (Telegram) link through a deep link instead of OAuth.
+        if (data.link_url) {
+            window.open(data.link_url, "_blank", "noopener");
+
+            setStatus(
+                data.instructions ||
+                    `Press Start in ${integration.name}, then refresh this page.`,
+                "off"
+            );
+
+            const refresh = document.createElement("button");
+            refresh.type = "button";
+            refresh.className = "ghost";
+            refresh.textContent = "I pressed Start";
+            refresh.addEventListener("click", () => loadIntegrations());
+
+            const actions = document.createElement("div");
+            actions.className = "plugin-actions";
+            actions.appendChild(refresh);
+            pluginList.prepend(actions);
+
+            return;
+        }
+
         if (!data.authorize_url) {
             throw new Error("The server did not return a login link.");
         }

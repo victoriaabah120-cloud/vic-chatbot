@@ -2,10 +2,11 @@
 
 from typing import Dict, List
 
-from .providers import GitHubProvider, Provider
+from .providers import GitHubProvider, Provider, TelegramProvider
 
 _PROVIDERS: Dict[str, Provider] = {
     "github": GitHubProvider(),
+    "telegram": TelegramProvider(),
 }
 
 

@@ -5,6 +5,7 @@ Tokens are encrypted at rest; nothing here ever returns a raw token to the
 browser.
 """
 
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -12,6 +13,8 @@ from . import crypto
 from .registry import get_provider
 
 TABLE = "integrations"
+LINK_CODES = "integration_link_codes"
+LINK_TTL_MINUTES = 15
 
 
 def _row_to_dict(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -141,3 +144,62 @@ def active_tools(supabase, user_id: str) -> List[Any]:
 
 def tool_name_map(supabase, user_id: str) -> Dict[str, Any]:
     return {tool.name: tool for tool in active_tools(supabase, user_id)}
+
+
+def create_link_code(
+    supabase, user_id: str, provider_id: str
+) -> str:
+    """One-time code a bot deep link carries (Telegram /start payload)."""
+    code = secrets.token_urlsafe(9)
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(minutes=LINK_TTL_MINUTES)
+    ).isoformat()
+
+    supabase.table(LINK_CODES).insert(
+        {
+            "code": code,
+            "user_id": user_id,
+            "provider": provider_id,
+            "expires_at": expires_at,
+        }
+    ).execute()
+    return code
+
+
+def consume_link_code(
+    supabase, code: str, provider_id: str
+) -> Optional[str]:
+    """Return the user id for a valid unused code, and burn the code."""
+    if not code:
+        return None
+
+    response = (
+        supabase.table(LINK_CODES)
+        .select("code,user_id,expires_at,used")
+        .eq("code", code)
+        .eq("provider", provider_id)
+        .limit(1)
+        .execute()
+    )
+    rows = response.data or []
+    if not rows:
+        return None
+
+    row = rows[0]
+    if row.get("used"):
+        return None
+
+    expires_at = row.get("expires_at")
+    if expires_at:
+        try:
+            expiry = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if expiry < datetime.now(timezone.utc):
+            return None
+
+    supabase.table(LINK_CODES).update({"used": True}).eq(
+        "code", code
+    ).execute()
+
+    return row.get("user_id")

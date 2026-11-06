@@ -1,5 +1,6 @@
 """HTTP endpoints for connecting and managing plugins."""
 
+import hmac
 import os
 from typing import Any, Dict, List
 
@@ -8,7 +9,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from . import crypto, store
-from .deps import get_supabase, require_user
+from .deps import get_supabase, require_admin, require_user
+from .providers import telegram as telegram_provider
 from .registry import all_providers, get_provider
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
@@ -93,6 +95,25 @@ def start_connection(
             ),
         )
 
+    if provider.auth == "bot":
+        try:
+            code = store.create_link_code(get_supabase(), user.id, provider_id)
+        except Exception as error_value:  # noqa: BLE001
+            raise HTTPException(
+                status_code=500,
+                detail=f"Could not start the connection: {error_value}",
+            ) from error_value
+
+        return {
+            "mode": "bot",
+            "link_url": provider.build_authorize_url(code, ""),
+            "code": code,
+            "instructions": (
+                f"Open {provider.name} and press Start. This link works once, "
+                f"for the next {store.LINK_TTL_MINUTES} minutes."
+            ),
+        }
+
     try:
         state = crypto.create_state(user.id, provider_id)
     except crypto.ConfigError as error:
@@ -100,6 +121,7 @@ def start_connection(
 
     redirect_uri = _redirect_uri(provider_id, request)
     return {
+        "mode": "oauth",
         "authorize_url": provider.build_authorize_url(state, redirect_uri),
         "redirect_uri": redirect_uri,
     }
@@ -195,3 +217,127 @@ def disconnect(
     supabase, user = require_user(authorization)
     store.delete_connection(supabase, user.id, provider_id)
     return {"provider": provider_id, "connected": False}
+
+
+# ==============================
+# TELEGRAM (bot provider)
+# ==============================
+
+def _telegram_reply(chat_id: Any, text: str) -> None:
+    try:
+        telegram_provider.send_message(chat_id, text)
+    except Exception:  # noqa: BLE001 - a failed reply must not fail the webhook
+        pass
+
+
+@router.post("/telegram/webhook")
+async def telegram_webhook(
+    request: Request,
+    x_telegram_bot_api_secret_token: str | None = Header(default=None),
+):
+    """Receives bot updates. Telegram retries, so always answer 200."""
+    secret = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+    if secret and not hmac.compare_digest(
+        secret.encode(), (x_telegram_bot_api_secret_token or "").encode()
+    ):
+        raise HTTPException(status_code=403, detail="Invalid webhook secret.")
+
+    try:
+        update = await request.json()
+    except Exception:  # noqa: BLE001
+        return {"ok": True}
+
+    message = update.get("message") or update.get("edited_message") or {}
+    chat = message.get("chat") or {}
+    chat_id = chat.get("id")
+    text = (message.get("text") or "").strip()
+
+    if not chat_id:
+        return {"ok": True}
+
+    if not text.startswith("/start"):
+        _telegram_reply(
+            chat_id,
+            "Hi. Open Vic Chatbot, go to Plugins, and press Connect "
+            "Telegram to link this chat.",
+        )
+        return {"ok": True}
+
+    parts = text.split(maxsplit=1)
+    code = parts[1].strip() if len(parts) > 1 else ""
+
+    if not code:
+        _telegram_reply(
+            chat_id,
+            "Open Vic Chatbot, go to Plugins, and press Connect Telegram "
+            "to link this chat.",
+        )
+        return {"ok": True}
+
+    try:
+        supabase = get_supabase()
+        user_id = store.consume_link_code(supabase, code, "telegram")
+    except Exception:  # noqa: BLE001
+        user_id = None
+
+    if not user_id:
+        _telegram_reply(
+            chat_id,
+            "That link has expired or was already used. Generate a new one "
+            "in Vic Chatbot under Plugins.",
+        )
+        return {"ok": True}
+
+    username = chat.get("username")
+    label = f"@{username}" if username else (chat.get("first_name") or str(chat_id))
+
+    try:
+        store.save_connection(
+            supabase,
+            user_id,
+            "telegram",
+            {"access_token": str(chat_id), "scopes": "chat"},
+            account_label=label,
+        )
+    except Exception:  # noqa: BLE001
+        _telegram_reply(
+            chat_id, "Something went wrong while linking. Please try again."
+        )
+        return {"ok": True}
+
+    _telegram_reply(
+        chat_id,
+        "Connected. Vic Chatbot can now send messages to this chat.",
+    )
+    return {"ok": True}
+
+
+@router.post("/telegram/register-webhook")
+def register_telegram_webhook(
+    request: Request,
+    authorization: str | None = Header(default=None),
+):
+    """Admin only: point the bot at this server. Run once after deploying."""
+    require_admin(authorization)
+
+    base = os.getenv("INTEGRATION_REDIRECT_BASE") or str(request.base_url)
+    url = f"{base.rstrip('/')}/integrations/telegram/webhook"
+    secret = os.getenv("TELEGRAM_WEBHOOK_SECRET") or ""
+
+    payload: Dict[str, Any] = {
+        "url": url,
+        "allowed_updates": ["message"],
+        "drop_pending_updates": True,
+    }
+    if secret:
+        payload["secret_token"] = secret
+
+    try:
+        result = telegram_provider.call("setWebhook", payload)
+    except Exception as error_value:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502,
+            detail=f"Telegram refused the webhook: {error_value}",
+        ) from error_value
+
+    return {"ok": True, "webhook_url": url, "telegram_response": result}
