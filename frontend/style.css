@@ -2672,25 +2672,26 @@ a {
 }
 
 @media (max-width: 600px) {
+    /* phone composer: bigger tap targets. 52 + 2x11 padding + 2px border = 76px bar */
     #composerBar {
-        gap: 4px;
-        padding: 5px;
-        border-radius: 22px;
+        gap: 6px;
+        padding: 11px;
+        border-radius: 26px;
     }
 
     #composerBar > button {
-        width: 36px;
-        height: 36px;
+        width: 46px;
+        height: 46px;
     }
 
     #composerBar > button svg {
-        width: 19px;
-        height: 19px;
+        width: 26px;
+        height: 26px;
     }
 
     #composerBar > #sendButton {
-        width: 44px;
-        height: 44px;
+        width: 52px;
+        height: 52px;
         background: var(--accent);
     }
 
@@ -2700,39 +2701,47 @@ a {
     }
 
     #composerBar > #sendButton svg {
-        width: 22px;
-        height: 22px;
+        width: 28px;
+        height: 28px;
     }
 
     #messageInput {
-        min-height: 36px;
-        padding: 7px 2px;
+        min-height: 52px;
+        padding: 4px 2px;
+        font-size: 18px;
     }
 
     #voiceStatus {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
     }
 }
 
 @media (max-width: 360px) {
+    /* keep the same big targets on the narrowest phones, tighten the gutter
+       instead so the input still has room and nothing overflows sideways */
+    #chatMain {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
     #composerBar {
-        gap: 2px;
-        padding: 4px;
+        gap: 4px;
+        padding: 11px;
     }
 
     #composerBar > button {
-        width: 34px;
-        height: 34px;
+        width: 46px;
+        height: 46px;
     }
 
     #composerBar > button svg {
-        width: 18px;
-        height: 18px;
+        width: 26px;
+        height: 26px;
     }
 
     #composerBar > #sendButton {
-        width: 42px;
-        height: 42px;
+        width: 52px;
+        height: 52px;
         background: var(--accent);
     }
 
@@ -2742,12 +2751,13 @@ a {
     }
 
     #composerBar > #sendButton svg {
-        width: 21px;
-        height: 21px;
+        width: 28px;
+        height: 28px;
     }
 
     #messageInput {
-        padding: 7px 1px;
+        min-height: 52px;
+        padding: 4px 1px;
     }
 
     #composerMenu {
