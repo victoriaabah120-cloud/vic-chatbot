@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugins | Vic Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=9">
+    <style>
+        body {
+            padding: 24px;
+        }
+
+        .plugins-shell {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .plugins-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .plugins-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .plugins-intro {
+            color: var(--text-soft);
+            margin: 0 0 24px;
+        }
+
+        .plugin-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+
+        .plugin-card h2 {
+            margin: 0 0 4px;
+            font-size: 1.05rem;
+        }
+
+        .plugin-card p {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 0.9rem;
+        }
+
+        .plugin-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .plugin-actions button,
+        .plugins-header a {
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .plugins-header a {
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .plugin-actions button.primary {
+            border: none;
+            background: var(--gradient);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .plugin-actions button.ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .plugin-actions button.danger {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .plugin-status {
+            font-size: 0.85rem;
+            color: var(--text-soft);
+        }
+
+        .plugin-status.connected {
+            color: #4ade80;
+        }
+
+        .plugin-status.off {
+            color: #fbbf24;
+        }
+
+        .plugins-note {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: var(--text-soft);
+        }
+    </style>
+</head>
+<body>
+    <main class="plugins-shell">
+        <div class="plugins-header">
+            <h1>Plugins</h1>
+            <a href="index.html">Back to chat</a>
+        </div>
+        <p class="plugins-intro">
+            Connect an account and Vic Chatbot can use it in the conversation,
+            like reading your repositories or checking your calendar.
+        </p>
+
+        <p id="pluginsStatus" role="status"></p>
+        <div id="pluginList"></div>
+
+        <p class="plugins-note">
+            Tokens are stored encrypted. You can switch a plugin off or
+            disconnect it at any time.
+        </p>
+    </main>
+
+    <script type="module" src="integrations.js"></script>
+</body>
+</html>

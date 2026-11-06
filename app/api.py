@@ -9,7 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 
+from app.integrations.agent import run_chat_with_plugins
+from app.integrations.router import router as integrations_router
+
 app = FastAPI()
+
+app.include_router(integrations_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -555,10 +560,13 @@ def chat(
     history.append(user_message)
 
     try:
-        response = client.chat.completions.create(
+        answer = run_chat_with_plugins(
+            client=client,
             model="openai/gpt-oss-120b",
             temperature=0.5,
             reasoning_effort="low",
+            supabase=supabase,
+            user_id=user.id,
             messages=[
                 {
                     "role": "system",
@@ -633,8 +641,6 @@ Plain-text and accuracy requirements:
             status_code=500,
             detail="Something went wrong while generating the response."
         ) from error
-
-    answer = response.choices[0].message.content
 
     assistant_message = {
         "role": "assistant",
