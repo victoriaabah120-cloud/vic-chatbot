@@ -78,6 +78,18 @@ const micButton =
 const voiceStatus =
     document.getElementById("voiceStatus");
 
+const composerBar =
+    document.getElementById("composerBar");
+
+const composerPlusButton =
+    document.getElementById("composerPlusButton");
+
+const composerMenu =
+    document.getElementById("composerMenu");
+
+const micButtonLabel =
+    document.getElementById("micButtonLabel");
+
 const conversationList =
     document.getElementById("conversationList");
 
@@ -155,7 +167,9 @@ if (SpeechRecognition) {
 
     recognition.onstart = () => {
         isListening = true;
-        micButton.textContent = "Listening...";
+        if (micButtonLabel) {
+            micButtonLabel.textContent = "Listening...";
+        }
         micButton.setAttribute("aria-label", "Stop voice input");
         micButton.setAttribute("aria-pressed", "true");
         micButton.classList.add("is-listening");
@@ -196,7 +210,9 @@ if (SpeechRecognition) {
 
     recognition.onend = () => {
         isListening = false;
-        micButton.textContent = "Mic";
+        if (micButtonLabel) {
+            micButtonLabel.textContent = "Mic";
+        }
         micButton.setAttribute("aria-label", "Start voice input");
         micButton.setAttribute("aria-pressed", "false");
         micButton.classList.remove("is-listening");
@@ -1257,6 +1273,10 @@ async function sendMessage() {
     messageInput.value =
         "";
 
+    if (typeof syncComposerSendState === "function") {
+        syncComposerSendState();
+    }
+
     sendButton.disabled =
         true;
 
@@ -1475,6 +1495,75 @@ sendButton.addEventListener(
 );
 
 
+// ==============================
+// COMPOSER MENU (PRESENTATION)
+// ==============================
+
+function closeComposerMenu() {
+    if (!composerMenu || !composerPlusButton) {
+        return;
+    }
+
+    composerMenu.hidden = true;
+    composerPlusButton.setAttribute("aria-expanded", "false");
+}
+
+function openComposerMenu() {
+    if (!composerMenu || !composerPlusButton) {
+        return;
+    }
+
+    composerMenu.hidden = false;
+    composerPlusButton.setAttribute("aria-expanded", "true");
+}
+
+if (composerPlusButton && composerMenu) {
+    composerPlusButton.addEventListener("click", event => {
+        event.stopPropagation();
+
+        if (composerMenu.hidden) {
+            openComposerMenu();
+        } else {
+            closeComposerMenu();
+        }
+    });
+
+    composerMenu.addEventListener("click", event => {
+        if (event.target.closest("button")) {
+            closeComposerMenu();
+        }
+    });
+
+    document.addEventListener("click", event => {
+        if (
+            !composerMenu.hidden &&
+            !composerMenu.contains(event.target) &&
+            !composerPlusButton.contains(event.target)
+        ) {
+            closeComposerMenu();
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !composerMenu.hidden) {
+            closeComposerMenu();
+            composerPlusButton.focus();
+        }
+    });
+}
+
+function syncComposerSendState() {
+    const hasText = messageInput.value.trim().length > 0;
+
+    sendButton.classList.toggle("is-empty", !hasText);
+}
+
+if (messageInput && sendButton) {
+    messageInput.addEventListener("input", syncComposerSendState);
+    syncComposerSendState();
+}
+
+
 messageInput.addEventListener(
     "keydown",
     function(event) {
@@ -1512,7 +1601,12 @@ imageButton.addEventListener("click", async function () {
 
     imageButton.disabled = true;
     sendButton.disabled = true;
-    imageButton.textContent = "Creating...";
+    const imageButtonLabel =
+        document.getElementById("imageButtonLabel");
+
+    if (imageButtonLabel) {
+        imageButtonLabel.textContent = "Creating...";
+    }
 
     try {
         const {
@@ -1573,6 +1667,11 @@ imageButton.addEventListener("click", async function () {
         chatContainer.appendChild(imageCard);
 
         messageInput.value = "";
+
+        if (typeof syncComposerSendState === "function") {
+            syncComposerSendState();
+        }
+
         imageCard.scrollIntoView({ behavior: "smooth", block: "end" });
 
     } catch (error) {
@@ -1581,6 +1680,8 @@ imageButton.addEventListener("click", async function () {
     } finally {
         imageButton.disabled = false;
         sendButton.disabled = false;
-        imageButton.textContent = "Create Image";
+        if (imageButtonLabel) {
+            imageButtonLabel.textContent = "Create Image";
+        }
     }
 });
