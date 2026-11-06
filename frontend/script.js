@@ -452,7 +452,7 @@ function showChat(session) {
 function showAuth() {
 
     authSection.style.display =
-        "block";
+        "grid";
 
     chatSection.style.display =
         "none";
