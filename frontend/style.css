@@ -179,6 +179,30 @@ input::placeholder {
     opacity: 1;
 }
 
+/* Chrome and Firefox repaint autofilled fields (Firefox paints them cream),
+   which breaks the dark theme. Cover the repaint and keep our own colours. */
+#authSection input:autofill,
+#authSection input:autofill:hover,
+#authSection input:autofill:focus,
+#resetRequestSection input:autofill,
+#resetPasswordForm input:autofill {
+    -webkit-text-fill-color: var(--text);
+    background-color: var(--surface);
+    box-shadow: 0 0 0 1000px var(--surface) inset;
+    caret-color: var(--text);
+    filter: none;
+}
+
+@supports (-moz-appearance: none) {
+    #authSection input:-moz-autofill,
+    #authSection input:-moz-autofill-preview {
+        background-color: var(--surface) !important;
+        color: var(--text) !important;
+        filter: none;
+        box-shadow: 0 0 0 1000px var(--surface) inset;
+    }
+}
+
 #authSection input,
 #resetRequestSection input,
 #resetPasswordForm input {
@@ -1882,7 +1906,61 @@ a {
 
 /* ---------- responsive ---------- */
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
+    .auth-page #authSection {
+        grid-template-columns: 46fr 54fr;
+    }
+
+    .auth-promo {
+        gap: 20px;
+        padding: 30px 26px 10px;
+    }
+
+    .promo-headline {
+        font-size: clamp(1.4rem, 2.1vw, 2rem);
+    }
+
+    .promo-lines {
+        font-size: 0.86rem;
+    }
+
+    .robot-stage {
+        --robot-scale: 0.92;
+    }
+
+    #authPanel {
+        padding: 30px 26px;
+    }
+}
+
+@media (max-width: 940px) {
+    .auth-page #authSection {
+        grid-template-columns: 42fr 58fr;
+    }
+
+    .auth-promo {
+        gap: 14px;
+        padding: 24px 20px 8px;
+    }
+
+    .promo-headline {
+        font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    }
+
+    .promo-lines {
+        font-size: 0.8rem;
+    }
+
+    .robot-stage {
+        --robot-scale: 0.72;
+    }
+
+    #authPanel {
+        padding: 26px 20px;
+    }
+}
+
+@media (max-width: 820px) {
     .auth-page #authSection {
         min-height: calc(100vh - 56px);
         grid-template-columns: 1fr;
