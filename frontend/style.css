@@ -1071,6 +1071,33 @@ a {
     stroke-linejoin: round;
 }
 
+/* Send is the primary action: a solid accent circle, clearly larger than
+   the mic. These selectors outrank "#composerBar > button", which had been
+   leaving the send button transparent. */
+#composerBar > #sendButton {
+    width: 46px;
+    height: 46px;
+    background: var(--accent);
+    color: var(--text);
+}
+
+#composerBar > #sendButton:hover:not(:disabled) {
+    background: var(--accent-hover);
+    color: var(--text);
+}
+
+#composerBar > #sendButton.is-empty,
+#composerBar > #sendButton:disabled {
+    background: var(--surface-border);
+    color: var(--text-soft);
+}
+
+#composerBar > #sendButton svg {
+    width: 23px;
+    height: 23px;
+    stroke-width: 2.3;
+}
+
 /* Create Image stays visible above the bar, never hidden in a menu */
 #composerActions {
     display: flex;
@@ -2371,6 +2398,22 @@ a {
         height: 19px;
     }
 
+    #composerBar > #sendButton {
+        width: 44px;
+        height: 44px;
+        background: var(--accent);
+    }
+
+    #composerBar > #sendButton.is-empty,
+    #composerBar > #sendButton:disabled {
+        background: var(--surface-border);
+    }
+
+    #composerBar > #sendButton svg {
+        width: 22px;
+        height: 22px;
+    }
+
     #messageInput {
         min-height: 36px;
         padding: 7px 2px;
@@ -2395,6 +2438,22 @@ a {
     #composerBar > button svg {
         width: 18px;
         height: 18px;
+    }
+
+    #composerBar > #sendButton {
+        width: 42px;
+        height: 42px;
+        background: var(--accent);
+    }
+
+    #composerBar > #sendButton.is-empty,
+    #composerBar > #sendButton:disabled {
+        background: var(--surface-border);
+    }
+
+    #composerBar > #sendButton svg {
+        width: 21px;
+        height: 21px;
     }
 
     #messageInput {
