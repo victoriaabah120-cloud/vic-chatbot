@@ -1705,12 +1705,18 @@ a {
     }
 }
 
-.promo-headline {
-    animation: promo-rise 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+/* The two headline lines are typed in and cleared away by promo.js, over and
+   over, so they fade through a class the script controls rather than a one-shot
+   entrance. Without JavaScript both stay fully readable. */
+.promo-headline,
+.promo-subhead {
+    transition: opacity 0.42s ease, transform 0.42s ease;
 }
 
-.promo-subhead {
-    animation: promo-rise 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.16s both;
+.promo-headline.is-away,
+.promo-subhead.is-away {
+    opacity: 0;
+    transform: translateY(-4px);
 }
 
 .promo-lines {
