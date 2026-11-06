@@ -1289,7 +1289,6 @@ a {
     background: rgba(139, 92, 246, 0.12);
 }
 
-#loginForm > .brand-name {
 @media (max-width: 480px) {
     .welcome-banner h1 {
         font-size: 1rem;
@@ -1310,5 +1309,674 @@ a {
 
     #adminHeader.welcome-banner {
         padding: 12px;
+    }
+}
+
+
+/* ============================================================
+   SPLIT-SCREEN AUTHENTICATION
+   Left: animated promo with 3D robot. Right: existing form.
+   ============================================================ */
+
+.auth-page #authSection {
+    display: grid;
+    width: 100%;
+    max-width: none;
+    min-height: calc(100vh - 56px);
+    margin: 0;
+    padding: 0;
+    grid-template-columns: 55fr 45fr;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg);
+    box-shadow: var(--shadow);
+}
+
+/* ---------- left panel ---------- */
+
+.auth-promo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+    padding: clamp(24px, 3vw, 44px);
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+    background:
+        radial-gradient(120% 90% at 18% 0%, rgba(192, 38, 211, 0.24), transparent 55%),
+        radial-gradient(95% 80% at 88% 100%, rgba(124, 58, 237, 0.3), transparent 62%),
+        linear-gradient(160deg, #0E0E24 0%, #0A0A1F 62%, #0B0B22 100%);
+}
+
+.auth-promo::before {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(139, 92, 246, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
+    background-size: 46px 46px;
+    content: "";
+    mask-image: radial-gradient(75% 65% at 40% 45%, rgba(0, 0, 0, 0.9), transparent 78%);
+    pointer-events: none;
+}
+
+.promo-brand {
+    position: relative;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--text-soft);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+}
+
+.promo-brand-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-hover);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16), 0 0 14px rgba(167, 139, 250, 0.9);
+    animation: promo-dot 2.8s ease-in-out infinite;
+}
+
+.promo-copy {
+    position: relative;
+    z-index: 3;
+    max-width: 27rem;
+}
+
+.promo-headline {
+    margin: 0 0 16px;
+    color: var(--text);
+    font-size: clamp(1.6rem, 2.35vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.038em;
+    line-height: 1.08;
+    text-transform: uppercase;
+    text-shadow: 0 0 46px rgba(139, 92, 246, 0.35);
+}
+
+.promo-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.92em;
+    margin-left: 5px;
+    background: var(--accent-hover);
+    vertical-align: -0.08em;
+    animation: promo-caret 1.05s steps(1) infinite;
+}
+
+.promo-lines {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-soft);
+    font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+}
+
+.promo-lines li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.22;
+    transform: translateX(-6px);
+    transition: opacity 0.65s ease, transform 0.65s ease, color 0.65s ease;
+}
+
+.promo-lines li::before {
+    width: 15px;
+    height: 1px;
+    flex: none;
+    background: currentColor;
+    content: "";
+    opacity: 0.55;
+    transition: width 0.6s ease, background-color 0.6s ease;
+}
+
+.promo-lines li.is-active {
+    color: var(--text);
+    opacity: 1;
+    transform: none;
+}
+
+.promo-lines li.is-active::before {
+    width: 26px;
+    background: var(--accent);
+    opacity: 1;
+}
+
+.promo-lines li.is-done {
+    opacity: 0.66;
+    transform: none;
+}
+
+/* ---------- robot ---------- */
+
+.robot-stage {
+    --robot-scale: 1.14;
+    position: relative;
+    z-index: 2;
+    width: calc(240px * var(--robot-scale));
+    height: calc(318px * var(--robot-scale));
+    margin: 14px auto 0;
+    perspective: 900px;
+}
+
+.robot {
+    position: relative;
+    width: 240px;
+    height: 318px;
+    transform: scale(var(--robot-scale));
+    transform-origin: top left;
+}
+
+.robot-inner {
+    position: absolute;
+    inset: 0;
+    display: block;
+    transform-style: preserve-3d;
+    animation: robot-float 7s ease-in-out infinite alternate;
+}
+
+.auth-promo::after {
+    position: absolute;
+    right: 8%;
+    bottom: -12%;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(167, 139, 250, 0.2), transparent 72%);
+    content: "";
+    filter: blur(14px);
+    pointer-events: none;
+}
+
+.robot-halo {
+    position: absolute;
+    inset: -46px -34px -10px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(139, 92, 246, 0.34), transparent 74%);
+    filter: blur(10px);
+}
+
+.robot-ring {
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    width: 214px;
+    height: 58px;
+    margin-left: -107px;
+    border: 1px solid rgba(167, 139, 250, 0.34);
+    border-radius: 50%;
+    box-shadow: 0 0 26px rgba(139, 92, 246, 0.22) inset;
+    transform: rotateX(74deg);
+    animation: robot-ring 16s linear infinite;
+}
+
+.robot-head {
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    left: 50%;
+    width: 108px;
+    height: 96px;
+    margin-left: -54px;
+    border: 1px solid rgba(167, 139, 250, 0.34);
+    border-radius: 34px 34px 30px 30px;
+    background: linear-gradient(158deg, #40407A 0%, #24244C 44%, #14142F 100%);
+    box-shadow:
+        inset 0 7px 15px rgba(255, 255, 255, 0.12),
+        inset 0 -16px 26px rgba(0, 0, 0, 0.6),
+        0 18px 34px rgba(0, 0, 0, 0.5);
+    transform-origin: 50% 92%;
+    animation: robot-head-look 9s ease-in-out infinite;
+}
+
+.robot-head::after {
+    position: absolute;
+    inset: 6px 10px auto;
+    height: 32%;
+    border-radius: 26px 26px 60% 60%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent);
+    content: "";
+}
+
+.robot-antenna {
+    position: absolute;
+    top: -17px;
+    left: 50%;
+    width: 4px;
+    height: 18px;
+    margin-left: -2px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #7C3AED, #2A2A55);
+}
+
+.robot-antenna::after {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    border-radius: 50%;
+    background: var(--accent-hover);
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.95);
+    content: "";
+    animation: robot-tip 2.6s ease-in-out infinite;
+}
+
+.robot-ear {
+    position: absolute;
+    top: 34px;
+    width: 10px;
+    height: 26px;
+    border-radius: 6px;
+    background: linear-gradient(160deg, #3A3A6E, #171734);
+    box-shadow: inset 0 0 6px rgba(139, 92, 246, 0.35);
+}
+
+.robot-ear-left { left: -9px; }
+.robot-ear-right { right: -9px; }
+
+.robot-visor {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    display: flex;
+    width: 80px;
+    height: 34px;
+    margin-left: -40px;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: radial-gradient(circle at 32% 24%, #2C2554, #07071A 82%);
+    box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.92), 0 0 20px rgba(139, 92, 246, 0.26);
+}
+
+.robot-visor::after {
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 46%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    content: "";
+    animation: robot-sheen 6.5s ease-in-out infinite;
+}
+
+.robot-eye {
+    width: 15px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #E9D5FF, #A78BFA);
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.95), 0 0 26px rgba(139, 92, 246, 0.6);
+    animation: robot-eyes 5.4s ease-in-out infinite;
+}
+
+.robot-neck {
+    position: absolute;
+    z-index: 2;
+    top: 90px;
+    left: 50%;
+    width: 38px;
+    height: 20px;
+    margin-left: -19px;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #12122B, #2A2A55);
+}
+
+.robot-torso {
+    position: absolute;
+    z-index: 3;
+    top: 106px;
+    left: 50%;
+    width: 132px;
+    height: 120px;
+    margin-left: -66px;
+    border: 1px solid rgba(167, 139, 250, 0.26);
+    border-radius: 34px 34px 26px 26px;
+    background: linear-gradient(155deg, #38386F 0%, #1E1E45 56%, #101026 100%);
+    box-shadow:
+        inset 0 8px 18px rgba(255, 255, 255, 0.09),
+        inset 0 -20px 30px rgba(0, 0, 0, 0.55),
+        0 22px 40px rgba(0, 0, 0, 0.45);
+}
+
+.robot-chest {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    width: 54px;
+    height: 30px;
+    margin-left: -27px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #C026D3, #7C3AED);
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.55), inset 0 0 12px rgba(255, 255, 255, 0.24);
+    animation: robot-chest 3.8s ease-in-out infinite;
+}
+
+.robot-shoulder {
+    position: absolute;
+    top: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 28%, #4C4C8A, #1A1A3A);
+    box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.14), 0 6px 12px rgba(0, 0, 0, 0.45);
+}
+
+.robot-shoulder-left { left: -11px; }
+.robot-shoulder-right { right: -11px; }
+
+.robot-arm {
+    position: absolute;
+    z-index: 2;
+    top: 118px;
+    width: 26px;
+    height: 104px;
+    border: 1px solid rgba(167, 139, 250, 0.2);
+    border-radius: 14px;
+    background: linear-gradient(158deg, #35356B, #191938);
+    box-shadow: inset 0 3px 8px rgba(255, 255, 255, 0.1), 0 12px 22px rgba(0, 0, 0, 0.4);
+    transform-origin: 50% 8%;
+    transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.robot-arm-left { left: 50%; margin-left: -96px; }
+.robot-arm-right { left: 50%; margin-left: 70px; }
+
+.robot-forearm {
+    position: absolute;
+    top: 62px;
+    left: -1px;
+    width: 26px;
+    height: 58px;
+    border: 1px solid rgba(167, 139, 250, 0.18);
+    border-radius: 13px;
+    background: linear-gradient(158deg, #3D3D79, #15152F);
+    transform-origin: 50% 6%;
+    animation: robot-forearm 5.6s ease-in-out infinite alternate;
+}
+
+.robot-forearm::after {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #6D6DAB, #23234A);
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.32);
+    content: "";
+}
+
+.robot-legs {
+    position: absolute;
+    z-index: 1;
+    top: 224px;
+    left: 50%;
+    display: flex;
+    width: 72px;
+    margin-left: -36px;
+    justify-content: space-between;
+}
+
+.robot-legs span {
+    width: 27px;
+    height: 46px;
+    border-radius: 10px 10px 12px 12px;
+    background: linear-gradient(180deg, #2A2A55, #101026);
+    box-shadow: inset 0 3px 7px rgba(255, 255, 255, 0.08);
+}
+
+.robot-shadow {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 150px;
+    height: 24px;
+    margin-left: -75px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(139, 92, 246, 0.5), transparent 72%);
+    filter: blur(6px);
+    animation: robot-shadow 7s ease-in-out infinite alternate;
+}
+
+/* gesture states, driven by promo.js data-step */
+
+.robot[data-step="1"] .robot-arm-right { transform: rotate(-128deg); }
+.robot[data-step="1"] .robot-arm-right .robot-forearm { animation: none; transform: rotate(-8deg); }
+.robot[data-step="1"] .robot-head { animation: robot-head-present 3.4s ease-in-out infinite; }
+
+.robot[data-step="2"] .robot-arm-right { transform: rotate(-72deg); }
+.robot[data-step="2"] .robot-arm-left { transform: rotate(18deg); }
+.robot[data-step="2"] .robot-head { animation: robot-head-look 4.6s ease-in-out infinite; }
+
+.robot[data-step="3"] .robot-arm-right { transform: rotate(-96deg); }
+.robot[data-step="3"] .robot-arm-left { transform: rotate(96deg); }
+.robot[data-step="3"] .robot-chest { animation: robot-chest 1.8s ease-in-out infinite; }
+
+/* ---------- right panel ---------- */
+
+#authPanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: clamp(22px, 3vw, 46px);
+    background: var(--bg);
+}
+
+#loginForm {
+    width: min(100%, 420px);
+    padding: clamp(22px, 2.2vw, 32px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+#authPanel p {
+    color: var(--muted-text);
+    font-size: 0.88rem;
+}
+
+#authPanel > p:has(a),
+#authPanel #forgotPasswordLink {
+    text-align: center;
+}
+
+#authPanel #authMessage {
+    margin: 6px 0 0;
+    text-align: center;
+}
+
+#resetRequestSection:not([hidden]) {
+    width: min(100%, 420px);
+    padding: clamp(22px, 2.2vw, 32px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+#resetRequestSection[hidden] {
+    display: none !important;
+}
+
+/* ---------- keyframes ---------- */
+
+@keyframes robot-float {
+    from { transform: translateY(0) rotateY(-4deg) rotateX(1.5deg); }
+    to { transform: translateY(-14px) rotateY(4deg) rotateX(-1.5deg); }
+}
+
+@keyframes robot-head-look {
+    0%, 55%, 100% { transform: rotate(0deg) rotateY(0deg) translateY(0); }
+    18% { transform: rotate(-2.5deg) rotateY(-11deg) translateY(-2px); }
+    38% { transform: rotate(2deg) rotateY(9deg) translateY(-1px); }
+    72% { transform: rotate(-1deg) rotateY(-5deg); }
+}
+
+@keyframes robot-head-present {
+    0%, 100% { transform: rotate(-4deg) rotateY(-14deg) translateY(-3px); }
+    50% { transform: rotate(-1deg) rotateY(-8deg) translateY(-1px); }
+}
+
+@keyframes robot-forearm {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(6deg); }
+}
+
+@keyframes robot-eyes {
+    0%, 92%, 100% { transform: scaleY(1); opacity: 1; }
+    94% { transform: scaleY(0.16); opacity: 0.75; }
+    96% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes robot-tip {
+    0%, 100% { opacity: 0.6; transform: scale(0.92); }
+    50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes robot-chest {
+    0%, 100% { opacity: 0.72; box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
+    50% { opacity: 1; box-shadow: 0 0 24px rgba(167, 139, 250, 0.8); }
+}
+
+@keyframes robot-sheen {
+    0%, 62% { left: -60%; }
+    82%, 100% { left: 120%; }
+}
+
+@keyframes robot-ring {
+    from { transform: rotateX(74deg) rotateZ(0deg); }
+    to { transform: rotateX(74deg) rotateZ(360deg); }
+}
+
+@keyframes robot-shadow {
+    from { opacity: 0.85; transform: scale(1); }
+    to { opacity: 0.55; transform: scale(0.86); }
+}
+
+@keyframes promo-caret {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+@keyframes promo-dot {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1024px) {
+    .auth-page #authSection {
+        min-height: calc(100vh - 56px);
+        grid-template-columns: 1fr;
+    }
+
+    .auth-promo {
+        gap: 12px;
+        padding: 22px 22px 8px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .promo-headline {
+        font-size: clamp(1.35rem, 4.4vw, 1.9rem);
+    }
+
+    .promo-lines {
+        font-size: 0.88rem;
+    }
+
+    .robot-stage {
+        --robot-scale: 0.74;
+        margin-top: 4px;
+    }
+
+    #authPanel {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-page #authSection {
+        min-height: calc(100vh - 16px);
+        margin: 0;
+        padding: 0;
+        border-radius: 14px;
+    }
+
+    .auth-promo {
+        padding: 18px 16px 4px;
+    }
+
+    .promo-brand {
+        font-size: 0.64rem;
+    }
+
+    .promo-lines {
+        min-height: 1.4em;
+    }
+
+    .promo-lines li:not(.is-active) {
+        display: none;
+    }
+
+    .robot-stage {
+        --robot-scale: 0.52;
+        margin-top: 2px;
+    }
+
+    .promo-headline {
+        font-size: clamp(1.1rem, 4.6vw, 1.45rem);
+    }
+
+    #authPanel {
+        padding-top: 16px;
+    }
+
+    #authPanel {
+        padding: 18px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .robot,
+    .robot-inner,
+    .robot-head,
+    .robot-forearm,
+    .robot-eye,
+    .robot-chest,
+    .robot-ring,
+    .robot-shadow,
+    .robot-antenna::after,
+    .robot-visor::after,
+    .promo-caret,
+    .promo-brand-dot {
+        animation: none !important;
+    }
+
+    .robot-arm {
+        transition: none;
+    }
+
+    .promo-lines li {
+        opacity: 1;
+        transform: none;
     }
 }

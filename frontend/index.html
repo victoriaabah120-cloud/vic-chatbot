@@ -9,13 +9,77 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
 
-<body>
+<body class="auth-page">
 
     <!-- Authentication section -->
     <div id="authSection">
+
+        <aside class="auth-promo" aria-label="About Vic Chatbot">
+
+            <div class="promo-brand">
+                <span class="promo-brand-dot" aria-hidden="true"></span>
+                <span>VIC CHATBOT</span>
+            </div>
+
+            <div class="promo-copy">
+                <h2 class="promo-headline">
+                    <span id="promoHeadlineText">AI IS A TOOL, NOT YOUR BRAIN.</span><span class="promo-caret" aria-hidden="true"></span>
+                </h2>
+
+                <ul class="promo-lines">
+                    <li>Think critically.</li>
+                    <li>Create with purpose.</li>
+                    <li>Your ideas. Your intelligence. Your AI.</li>
+                </ul>
+            </div>
+
+            <div class="robot-stage" aria-hidden="true">
+                <div class="robot" data-step="0">
+                    <span class="robot-inner">
+    <span class="robot-halo"></span>
+                        <span class="robot-ring"></span>
+
+                        <span class="robot-head">
+                            <span class="robot-antenna"></span>
+                            <span class="robot-ear robot-ear-left"></span>
+                            <span class="robot-ear robot-ear-right"></span>
+                            <span class="robot-visor">
+                                <span class="robot-eye"></span>
+                                <span class="robot-eye"></span>
+                            </span>
+                        </span>
+
+                        <span class="robot-neck"></span>
+
+                        <span class="robot-torso">
+                            <span class="robot-chest"></span>
+                            <span class="robot-shoulder robot-shoulder-left"></span>
+                            <span class="robot-shoulder robot-shoulder-right"></span>
+                        </span>
+
+                        <span class="robot-arm robot-arm-left">
+                            <span class="robot-forearm"></span>
+                        </span>
+
+                        <span class="robot-arm robot-arm-right">
+                            <span class="robot-forearm"></span>
+                        </span>
+
+                        <span class="robot-legs">
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </span>
+                </div>
+
+                <span class="robot-shadow"></span>
+            </div>
+        </aside>
+
+        <div id="authPanel">
 
         <section id="loginForm">
         <header class="welcome-banner login-welcome-banner">
@@ -70,6 +134,8 @@
                 Back to login
             </button>
         </section>
+
+        </div>
 
     </div>
 
@@ -151,7 +217,8 @@
 
 
     <!-- Our JavaScript -->
-    <script type="module" src="script.js?v=9"></script>
+    <script type="module" src="script.js?v=10"></script>
+    <script type="module" src="promo.js?v=1"></script>
 
 </body>
 </html>
