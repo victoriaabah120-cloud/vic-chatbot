@@ -58,7 +58,7 @@ let accessToken = null;
 
 
 function redirectToMainPage() {
-    window.location.replace("index.html");
+    window.location.replace("app.html");
 }
 
 

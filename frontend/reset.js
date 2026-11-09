@@ -128,7 +128,7 @@ async function saveNewPassword(event) {
             "Password updated. Redirecting to login...";
         await supabaseClient.auth.signOut({ scope: "local" });
         window.setTimeout(() => {
-            window.location.replace("index.html?password_reset=success");
+            window.location.replace("app.html?password_reset=success");
         }, 800);
     } catch (error) {
         console.error("Password update error:", error);
