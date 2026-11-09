@@ -639,6 +639,13 @@ async function buildRobot() {
 
         if (!stage.classList.contains("has-3d")) {
             stage.classList.add("has-3d");
+
+            // Only promise "drawn live" once a real frame is on screen.
+            const caption = document.getElementById("stageCaptionText");
+
+            if (caption) {
+                caption.textContent = "Vic, drawn live in your browser";
+            }
         }
     }
 
