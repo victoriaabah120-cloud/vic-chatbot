@@ -1,0 +1,292 @@
+/* ============================================================
+   Standalone sign-in screen.
+
+   Loaded after style.css so it replaces the old split-screen layout: the
+   promotional rail is gone, and the existing login / signup / reset markup
+   sits alone in one centred card. Nothing here changes behaviour, only the
+   presentation, and every element id the scripts rely on stays untouched.
+   ============================================================ */
+
+body.auth-page {
+    display: grid;
+    min-height: 100vh;
+    padding: clamp(16px, 4vw, 44px);
+    place-items: center;
+    background:
+        radial-gradient(70% 55% at 50% -10%, rgba(124, 58, 237, 0.34), transparent 72%),
+        radial-gradient(55% 45% at 6% 100%, rgba(192, 38, 211, 0.18), transparent 68%),
+        radial-gradient(55% 45% at 96% 100%, rgba(139, 92, 246, 0.18), transparent 68%),
+        var(--bg);
+}
+
+body.auth-page::before {
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+    background-size: 52px 52px;
+    content: "";
+    mask-image: radial-gradient(60% 55% at 50% 40%, rgba(0, 0, 0, 0.9), transparent 78%);
+    pointer-events: none;
+}
+
+/* The old split-screen shell becomes a plain centred column. */
+.auth-page #authSection {
+    display: flex;
+    overflow: visible;
+    width: min(460px, 100%);
+    min-height: 0;
+    margin: 0 auto;
+    padding: 0;
+    grid-template-columns: none;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+#authPanel {
+    width: 100%;
+    padding: 0;
+    gap: 20px;
+    background: none;
+}
+
+/* ---------- brand ---------- */
+
+.auth-brand {
+    display: inline-flex;
+    align-self: center;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 2px;
+    border: 0;
+    background: none;
+    color: var(--text-soft);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 160ms ease;
+}
+
+.auth-brand:hover {
+    background: none;
+    color: var(--text);
+    transform: none;
+}
+
+.auth-brand-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-hover);
+    box-shadow:
+        0 0 0 4px rgba(139, 92, 246, 0.16),
+        0 0 14px rgba(167, 139, 250, 0.9);
+}
+
+/* ---------- the card itself ---------- */
+
+#loginForm,
+#resetRequestSection {
+    width: 100%;
+    padding: clamp(24px, 5vw, 36px);
+    border: 1px solid rgba(139, 92, 246, 0.26);
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(24, 24, 50, 0.96), rgba(14, 14, 33, 0.98));
+    box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.5),
+        0 0 70px rgba(139, 92, 246, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    animation: auth-card-in 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes auth-card-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+.login-welcome-banner {
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #C026D3 0%, #8B5CF6 55%, #7C3AED 100%);
+    box-shadow: 0 14px 34px rgba(139, 92, 246, 0.32);
+    text-align: center;
+}
+
+.login-welcome-banner h1 {
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+}
+
+.login-welcome-banner p {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    opacity: 0.92;
+}
+
+#loginForm > h2,
+#resetRequestSection > h2 {
+    margin: 22px 0 4px;
+    color: var(--text);
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+#loginForm > h2::after {
+    display: block;
+    width: 46px;
+    height: 2px;
+    margin-top: 12px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #C026D3, #7C3AED);
+    content: "";
+}
+
+#authSection input,
+#resetRequestSection input {
+    min-height: 50px;
+    padding: 13px 15px;
+    border-color: rgba(139, 92, 246, 0.22);
+    border-radius: 12px;
+    background: rgba(10, 10, 31, 0.72);
+    font-size: 0.95rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+#authSection input:focus,
+#resetRequestSection input:focus {
+    border-color: var(--accent-hover);
+    background: rgba(10, 10, 31, 0.92);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+    outline: none;
+}
+
+/* ---------- buttons ---------- */
+
+#authSection button,
+#resetRequestSection button {
+    min-height: 50px;
+    border-radius: 12px;
+    font-size: 0.97rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition:
+        transform 160ms ease,
+        box-shadow 200ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease;
+}
+
+#signUpButton {
+    border: 0;
+    background: linear-gradient(135deg, #C026D3 0%, #8B5CF6 55%, #7C3AED 100%);
+    box-shadow: 0 12px 28px rgba(139, 92, 246, 0.34);
+}
+
+#signUpButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #D02BE3 0%, #9B6BFF 55%, #8B5CF6 100%);
+    box-shadow: 0 16px 34px rgba(139, 92, 246, 0.44);
+    transform: translateY(-1px);
+}
+
+#loginButton,
+#requestPasswordResetButton,
+#saveNewPasswordButton {
+    border: 1px solid rgba(167, 139, 250, 0.45);
+    background: rgba(139, 92, 246, 0.14);
+    color: #EDE9FE;
+}
+
+#loginButton:hover:not(:disabled),
+#requestPasswordResetButton:hover:not(:disabled),
+#saveNewPasswordButton:hover:not(:disabled) {
+    border-color: rgba(196, 181, 253, 0.7);
+    background: rgba(139, 92, 246, 0.26);
+    transform: translateY(-1px);
+}
+
+#backToLoginButton {
+    border: 0;
+    background: none;
+    color: var(--text-soft);
+    font-weight: 500;
+}
+
+#backToLoginButton:hover {
+    background: none;
+    color: var(--text);
+    transform: none;
+}
+
+#authSection button:focus-visible,
+#authSection a:focus-visible,
+#authSection input:focus-visible {
+    outline: 3px solid rgba(167, 139, 250, 0.7);
+    outline-offset: 2px;
+}
+
+#forgotPasswordLink {
+    color: var(--accent-hover);
+    font-size: 0.88rem;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 160ms ease, color 160ms ease;
+}
+
+#forgotPasswordLink:hover {
+    color: #DDD6FE;
+    border-bottom-color: currentColor;
+}
+
+#authMessage,
+#passwordResetMessage {
+    min-height: 20px;
+    color: var(--text-soft);
+    font-size: 0.86rem;
+    text-align: center;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 480px) {
+    body.auth-page {
+        padding: 14px;
+    }
+
+    .auth-page #authSection {
+        width: 100%;
+    }
+
+    #loginForm,
+    #resetRequestSection {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+
+    #loginForm > h2,
+    #resetRequestSection > h2 {
+        margin-top: 18px;
+        font-size: 1.3rem;
+    }
+
+    .login-welcome-banner {
+        padding: 15px 16px;
+    }
+
+    .login-welcome-banner h1 {
+        font-size: 1.08rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #loginForm,
+    #resetRequestSection {
+        animation: none;
+    }
+}

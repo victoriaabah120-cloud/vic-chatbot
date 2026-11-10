@@ -6,207 +6,9 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ------------------------------------------------------------------ */
-/* navigation                                                          */
-/* ------------------------------------------------------------------ */
-
-const navToggle = document.getElementById("navToggle");
-const mobileNav = document.getElementById("mobileNav");
-
-if (navToggle && mobileNav) {
-    navToggle.addEventListener("click", () => {
-        const open = mobileNav.hasAttribute("hidden");
-        mobileNav.toggleAttribute("hidden", !open);
-        navToggle.setAttribute("aria-expanded", String(open));
-    });
-
-    mobileNav.addEventListener("click", (event) => {
-        if (event.target.closest("a")) {
-            mobileNav.setAttribute("hidden", "");
-            navToggle.setAttribute("aria-expanded", "false");
-        }
-    });
-}
-
-/* ------------------------------------------------------------------ */
-/* scroll reveal                                                       */
-/* ------------------------------------------------------------------ */
-
-const revealables = Array.from(document.querySelectorAll("[data-reveal]"));
-
-if (reduceMotion || !("IntersectionObserver" in window)) {
-    revealables.forEach((el) => el.classList.add("is-revealed"));
-} else {
-    const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-                return;
-            }
-
-            entry.target.classList.add("is-revealed");
-            revealObserver.unobserve(entry.target);
-        });
-    }, { threshold: 0.2, rootMargin: "0px 0px -8% 0px" });
-
-    revealables.forEach((el) => revealObserver.observe(el));
-}
-
-/* ------------------------------------------------------------------ */
-/* a small hint for returning visitors                                 */
-/* ------------------------------------------------------------------ */
-
-// Purely cosmetic: if this browser already holds a Supabase session, the app
-// page will open straight into the chat, so the label says so. The link is the
-// same either way and the real check still happens in the app.
-try {
-    const hasStoredSession = Object.keys(window.localStorage || {})
-        .some((key) => key.startsWith("sb-") && key.endsWith("-auth-token"));
-
-    if (hasStoredSession) {
-        document.querySelectorAll("[data-cta]").forEach((el) => {
-            el.textContent = "Open Vic Chatbot";
-        });
-    }
-} catch (error) {
-    // storage can be blocked; the default label is fine
-}
-
-/* ------------------------------------------------------------------ */
-/* the copy arrives in step with the robot                             */
-/* ------------------------------------------------------------------ */
-
-const HEADLINE = "A Brighter Way to Think and Learn";
-const TYPE_MS = 62;
-const SPACE_PAUSE_MS = 100;
-
-const headlineEl = document.getElementById("heroHeadline");
-const subEl = document.getElementById("heroSub");
-const statementEl = document.getElementById("heroStatement");
-const chipsEl = document.querySelector(".hero-chips");
-
-const cues = { nod: null, wave: null };
-
-// One clock for the whole presentation, worked out from the typing speed so the
-// words and the robot stay in step even if a frame is slow.
-const timeline = (() => {
-    let elapsed = 260;
-    const charAt = [];
-
-    for (const char of HEADLINE) {
-        elapsed += char === " " ? SPACE_PAUSE_MS : TYPE_MS;
-        charAt.push(elapsed);
-    }
-
-    const typed = elapsed;
-
-    return {
-        charAt,
-        typed,
-        nodAt: typed + 90,
-        subAt: typed + 240,
-        waveAt: typed + 880,
-        statementAt: typed + 1060,
-        chipsAt: typed + 1780,
-        end: typed + 2600
-    };
-})();
-
-function holdLineHeight() {
-    // Reserve the height of the finished headline so typing cannot push the
-    // buttons around, and redo it once webfonts settle.
-    if (!headlineEl) {
-        return;
-    }
-
-    headlineEl.style.minHeight = "";
-    const live = headlineEl.textContent;
-    headlineEl.textContent = HEADLINE;
-    const height = headlineEl.offsetHeight;
-    headlineEl.textContent = live;
-    headlineEl.style.minHeight = `${height}px`;
-}
-
-function showStep(el) {
-    if (el) {
-        el.classList.add("is-shown");
-    }
-}
-
-function presentCopy() {
-    if (!headlineEl) {
-        return;
-    }
-
-    [subEl, statementEl, chipsEl].forEach((el) => {
-        if (el) {
-            el.classList.add("reveal-item");
-        }
-    });
-
-    if (reduceMotion) {
-        headlineEl.textContent = HEADLINE;
-        [subEl, statementEl, chipsEl].forEach(showStep);
-        return;
-    }
-
-    const began = performance.now();
-    let typedChars = -1;
-    const fired = { nod: false, sub: false, wave: false, statement: false, chips: false };
-
-    function tick() {
-        const elapsed = performance.now() - began;
-
-        let count = 0;
-        while (count < HEADLINE.length && timeline.charAt[count] <= elapsed) {
-            count += 1;
-        }
-
-        if (count !== typedChars) {
-            headlineEl.textContent = HEADLINE.slice(0, count);
-            typedChars = count;
-        }
-
-        if (!fired.nod && elapsed >= timeline.nodAt) {
-            fired.nod = true;
-            cues.nod = performance.now();
-        }
-
-        if (!fired.sub && elapsed >= timeline.subAt) {
-            fired.sub = true;
-            showStep(subEl);
-        }
-
-        if (!fired.wave && elapsed >= timeline.waveAt) {
-            fired.wave = true;
-            cues.wave = performance.now();
-        }
-
-        if (!fired.statement && elapsed >= timeline.statementAt) {
-            fired.statement = true;
-            showStep(statementEl);
-        }
-
-        if (!fired.chips && elapsed >= timeline.chipsAt) {
-            fired.chips = true;
-            showStep(chipsEl);
-        }
-
-        if (elapsed < timeline.end) {
-            requestAnimationFrame(tick);
-        }
-    }
-
-    requestAnimationFrame(tick);
-}
-
-holdLineHeight();
-presentCopy();
-
-if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(holdLineHeight);
-}
-
-window.addEventListener("resize", holdLineHeight);
+// The copy module runs on its own so the words start immediately, before this
+// heavyweight scene has finished loading. It leaves its gesture cues here.
+const cues = window.vicCues || { nod: null, wave: null, present: null };
 
 /* ------------------------------------------------------------------ */
 /* the hero robot                                                      */
@@ -685,8 +487,14 @@ function initHero() {
             arms.right.rotation.x = waveEnvelope * 0.22;
         }
 
+        const presentAge = cues.present ? (now - cues.present) / 1000 : 99;
+        const presentEnvelope = presentAge < 1.5 ? Math.max(0, 1 - presentAge / 1.5) : 0;
+
         if (arms.left) {
-            arms.left.rotation.z = Math.sin(time * 0.9) * 0.05;
+            arms.left.rotation.z =
+                Math.sin(time * 0.9) * 0.05 +
+                presentEnvelope * (0.86 + Math.sin(presentAge * 5.4) * 0.1);
+            arms.left.rotation.x = presentEnvelope * 0.16;
         }
 
         // blinking
@@ -800,3 +608,4 @@ function initHero() {
 }
 
 initHero();
+

@@ -24,7 +24,7 @@
         rel="stylesheet"
     >
 
-    <link rel="stylesheet" href="landing.css?v=6">
+    <link rel="stylesheet" href="landing.css?v=7">
 
     <noscript>
         <style>
@@ -104,24 +104,31 @@
                     Vic Chatbot
                 </p>
 
-                <h1 class="hero-title">
-                    <span id="heroHeadline">A Brighter Way to Think and Learn</span><span class="hero-caret" aria-hidden="true"></span>
-                </h1>
+                <!-- One message presents at a time, in step with the robot.
+                     Without JavaScript they simply sit here as readable copy. -->
+                <div class="hero-messages" id="heroMessages">
+                    <h1 class="hero-title hero-message" id="messageHeadline">
+                        <span id="heroHeadline">A Brighter Way to Think and Learn</span><span class="hero-caret" aria-hidden="true"></span>
+                    </h1>
 
-                <p class="hero-sub reveal-item" id="heroSub">AI Is a Tool, Not Your Brain.</p>
+                    <p class="hero-sub hero-message" id="messageSub">AI Is a Tool, Not Your Brain.</p>
 
-                <p class="hero-statement reveal-item" id="heroStatement">Knowledge starts with curiosity.</p>
+                    <p class="hero-statement hero-message" id="messageStatement">Knowledge starts with curiosity.</p>
 
-                <ul class="hero-chips reveal-item">
-                    <li><span class="chip-dot" aria-hidden="true"></span>Think critically.</li>
-                    <li><span class="chip-dot" aria-hidden="true"></span>Create with purpose.</li>
-                </ul>
+                    <ul class="hero-chips hero-message" id="messageChips">
+                        <li><span class="chip-dot" aria-hidden="true"></span>Think critically.</li>
+                        <li><span class="chip-dot" aria-hidden="true"></span>Create with purpose.</li>
+                    </ul>
+                </div>
 
                 <div class="hero-actions">
-                    <a class="btn btn-primary btn-lg" href="app.html" data-cta id="getStarted">
-                        Get Started
+                    <a class="btn btn-primary btn-lg" href="app.html" id="getStarted">
+                        <span>Get Started</span>
+                        <svg class="btn-arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                            <path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </a>
-                    <a class="btn btn-ghost btn-lg" href="app.html">I already have an account</a>
+                    <a class="btn-text" href="app.html">Already have an account? Sign in</a>
                 </div>
             </div>
         </section>
@@ -177,7 +184,8 @@
         }
     </script>
 
-    <script type="module" src="landing.js?v=6"></script>
+    <script type="module" src="landing-copy.js?v=1"></script>
+    <script type="module" src="landing.js?v=8"></script>
 
 </body>
 
