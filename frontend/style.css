@@ -2892,3 +2892,108 @@ a.promo-brand:hover {
         padding: 9px;
     }
 }
+
+/* ============================================================
+   COMPOSER: MULTILINE GROWTH
+   The textarea wraps instead of scrolling sideways, grows upward
+   as lines are added, and stops at a ceiling that leaves the
+   conversation readable. Controls sit on the bottom edge so they
+   stay put as it grows.
+   ============================================================ */
+
+#composerBar {
+    align-items: flex-end;
+}
+
+#composerBar:focus-within {
+    border-color: rgba(139, 92, 246, 0.55);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.16);
+}
+
+#messageInput {
+    resize: none;
+    overflow-y: hidden;
+    max-height: 11rem;
+    padding: 9px 2px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    scrollbar-width: thin;
+}
+
+/* Phones: the bar runs nearly the full width of the chat, and the
+   ceiling is lower because the screen is short. */
+@media (max-width: 760px) {
+    #chatMain {
+        padding: 12px 10px max(12px, env(safe-area-inset-bottom));
+    }
+
+    #composerBar {
+        gap: 5px;
+        padding: 8px;
+        border-radius: 24px;
+    }
+
+    /* Every control keeps a comfortable target; the room they give up goes to
+       the text, which is what Victoria types into. */
+    #composerBar > button {
+        width: 44px;
+        height: 44px;
+    }
+
+    #composerBar > button svg {
+        width: 25px;
+        height: 25px;
+    }
+
+    #composerBar > #sendButton {
+        width: 48px;
+        height: 48px;
+    }
+
+    #composerBar > #sendButton svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    #messageInput {
+        max-height: 8.5rem;
+        min-height: 44px;
+        padding: 10px 2px;
+        font-size: 17px;
+        line-height: 1.45;
+    }
+}
+
+@media (max-width: 360px) {
+    #chatMain {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #composerBar {
+        gap: 5px;
+        padding: 8px;
+    }
+
+    #messageInput {
+        max-height: 8rem;
+        min-height: 42px;
+        padding: 9px 1px;
+        font-size: 16px;
+    }
+}
+
+/* iOS zooms a focused field under 16px; keep the type honest. */
+@media (max-width: 600px) {
+    #messageInput {
+        font-size: 17px;
+    }
+}
+
+/* The chat screen is the whole viewport: no page gutter, and the composer can
+   grow upward without the page scrolling under it. */
+body.chat-active {
+    padding: 0;
+    overflow: hidden;
+}

@@ -309,6 +309,11 @@ if (SpeechRecognition) {
 
         if (transcript) {
             messageInput.value = transcript;
+
+            if (window.vicComposer) {
+                window.vicComposer.resize();
+            }
+
             messageInput.focus();
             voiceStatus.textContent =
                 "Speech captured. Review it, then press Send.";
@@ -581,6 +586,11 @@ function showChat(session) {
     chatSection.style.display =
         "block";
 
+    // The chat owns the whole viewport; the auth page's card styling and page
+    // gutter must not follow it.
+    document.body.classList.remove("auth-page");
+    document.body.classList.add("chat-active");
+
     adminDashboardLink.hidden =
         session?.user?.app_metadata?.role !== "admin";
 
@@ -595,6 +605,9 @@ function showAuth() {
 
     chatSection.style.display =
         "none";
+
+    document.body.classList.remove("chat-active");
+    document.body.classList.add("auth-page");
 
     adminDashboardLink.hidden =
         true;
@@ -1512,6 +1525,10 @@ async function sendMessage() {
         syncComposerSendState();
     }
 
+    if (window.vicComposer) {
+        window.vicComposer.resize();
+    }
+
     sendButton.disabled =
         true;
 
@@ -1825,12 +1842,18 @@ messageInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (
-            event.key === "Enter"
-        ) {
-
-            sendMessage();
+        if (event.key !== "Enter" || event.isComposing) {
+            return;
         }
+
+        // Shift+Enter always means a new line. On a phone the return key does
+        // the same, so a long message can be written before sending it.
+        if (event.shiftKey || window.matchMedia("(pointer: coarse)").matches) {
+            return;
+        }
+
+        event.preventDefault();
+        sendMessage();
     }
 );
 
@@ -1920,6 +1943,10 @@ imageButton.addEventListener("click", async function () {
 
         if (typeof syncComposerSendState === "function") {
             syncComposerSendState();
+        }
+
+        if (window.vicComposer) {
+            window.vicComposer.resize();
         }
 
         // Keep the sidebar in step with the new conversation.

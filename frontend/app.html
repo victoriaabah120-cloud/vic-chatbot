@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=27">
+    <link rel="stylesheet" href="style.css?v=28">
     <link rel="stylesheet" href="auth.css?v=1">
 </head>
 
@@ -156,13 +156,14 @@
                             </svg>
                         </button>
 
-                        <input
+                        <textarea
                             id="messageInput"
-                            type="text"
+                            rows="1"
                             placeholder="Ask Vic"
+                            aria-label="Message Vic"
                             autocomplete="off"
                             enterkeyhint="send"
-                        >
+                        ></textarea>
 
                         <button
                             id="micButton"
@@ -202,7 +203,8 @@
 
 
     <!-- Our JavaScript -->
-    <script type="module" src="script.js?v=15"></script>
+    <script type="module" src="composer.js?v=1"></script>
+    <script type="module" src="script.js?v=16"></script>
 
 </body>
 </html>
