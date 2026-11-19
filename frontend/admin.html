@@ -7,6 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem("vic-theme");
+                var theme = saved === "light" ? "light" : "dark";
+                document.documentElement.dataset.theme = theme;
+                document.documentElement.style.colorScheme = theme;
+            } catch (error) {
+                document.documentElement.dataset.theme = "dark";
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -68,6 +80,35 @@
 
         <p id="adminActionStatus" role="status"></p>
 
+        <section aria-labelledby="announcementsHeading">
+            <h2 id="announcementsHeading">Announcements</h2>
+            <p class="admin-hint">
+                Sends one Brevo email per eligible account, one recipient at a time.
+                Each campaign key is sent once, so re-running it will not duplicate mail.
+            </p>
+            <form id="announcementForm" class="announcement-form">
+                <label for="announcementKey">Campaign key</label>
+                <input
+                    id="announcementKey"
+                    type="text"
+                    required
+                    maxlength="60"
+                    pattern="[a-z0-9\-]{3,60}"
+                    placeholder="november-release-notes"
+                >
+                <label for="announcementSubject">Subject</label>
+                <input id="announcementSubject" type="text" required maxlength="200">
+                <label for="announcementHtml">Message (HTML allowed)</label>
+                <textarea id="announcementHtml" rows="7" required></textarea>
+                <label class="announcement-check">
+                    <input id="announcementDryRun" type="checkbox" checked>
+                    <span>Dry run: count recipients without sending</span>
+                </label>
+                <button id="announcementSend" type="submit">Send announcement</button>
+            </form>
+            <p id="announcementStatus" role="status"></p>
+        </section>
+
         <section id="userConversationPanel" aria-labelledby="userConversationHeading" hidden>
             <h2 id="userConversationHeading">User conversations</h2>
             <p id="userConversationStatus" role="status"></p>
@@ -81,6 +122,7 @@
         </section>
     </main>
 
-    <script type="module" src="admin.js?v=2"></script>
+    <script type="module" src="admin.js?v=3"></script>
+    <script type="module" src="theme.js?v=1"></script>
 </body>
 </html>

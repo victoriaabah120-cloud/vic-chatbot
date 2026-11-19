@@ -348,3 +348,67 @@ async function loadDashboard() {
 
 
 loadDashboard();
+
+// ==============================
+// ANNOUNCEMENT EMAILS (BREVO)
+// ==============================
+
+const announcementForm = document.getElementById("announcementForm");
+const announcementStatus = document.getElementById("announcementStatus");
+
+if (announcementForm && announcementStatus) {
+    announcementForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const key = document.getElementById("announcementKey").value.trim();
+        const subject = document.getElementById("announcementSubject").value.trim();
+        const html = document.getElementById("announcementHtml").value.trim();
+        const dryRun = document.getElementById("announcementDryRun").checked;
+        const button = document.getElementById("announcementSend");
+
+        if (!key || !subject || !html) {
+            announcementStatus.textContent = "Add a campaign key, a subject and a message.";
+            return;
+        }
+
+        button.disabled = true;
+        announcementStatus.textContent = dryRun
+            ? "Counting recipients..."
+            : "Sending. This can take a moment for large lists...";
+
+        try {
+            const response = await adminFetch("/announcements/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key, subject, html, dry_run: dryRun }),
+            });
+
+            if (!response) {
+                return;
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                announcementStatus.textContent =
+                    data.detail || "The announcement could not be sent.";
+                return;
+            }
+
+            if (data.dry_run) {
+                announcementStatus.textContent =
+                    `Dry run: ${data.would_send} recipient(s) would receive this. ` +
+                    `Skipped ${data.skipped.already_sent} already sent, ` +
+                    `${data.skipped.opted_out} opted out, ` +
+                    `${data.skipped.unconfirmed} unconfirmed.`;
+            } else {
+                announcementStatus.textContent =
+                    `Sent ${data.sent}, failed ${data.failed} of ${data.queued}.`;
+            }
+        } catch (error) {
+            announcementStatus.textContent = "Could not reach the announcement service.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+}

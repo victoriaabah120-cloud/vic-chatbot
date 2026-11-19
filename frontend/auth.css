@@ -290,3 +290,88 @@ body.auth-page::before {
         animation: none;
     }
 }
+
+
+/* ============================================================
+   THEME TOGGLE ON THE SIGN-IN SCREEN + LIGHT THEME
+   ============================================================ */
+
+.auth-topbar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.auth-topbar .theme-toggle {
+    flex: 0 0 auto;
+    width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.auth-topbar .theme-toggle-text {
+    display: none;
+}
+
+:root[data-theme="light"] body.auth-page {
+    background:
+        radial-gradient(70% 55% at 50% -10%, rgba(124, 58, 237, 0.16), transparent 72%),
+        radial-gradient(55% 45% at 6% 100%, rgba(192, 38, 211, 0.1), transparent 68%),
+        radial-gradient(55% 45% at 96% 100%, rgba(99, 102, 241, 0.1), transparent 68%),
+        var(--bg);
+}
+
+:root[data-theme="light"] body.auth-page::before {
+    background-image:
+        linear-gradient(rgba(124, 58, 237, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.07) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] #loginForm,
+:root[data-theme="light"] #resetRequestSection {
+    border-color: rgba(124, 58, 237, 0.18);
+    background: #FFFFFF;
+    box-shadow:
+        0 24px 60px rgba(58, 30, 120, 0.14),
+        0 0 60px rgba(139, 92, 246, 0.08);
+}
+
+:root[data-theme="light"] #authSection input,
+:root[data-theme="light"] #resetRequestSection input {
+    border-color: rgba(124, 58, 237, 0.22);
+    background: #FBFAFF;
+    color: var(--text);
+}
+
+:root[data-theme="light"] #authSection input:focus,
+:root[data-theme="light"] #resetRequestSection input:focus {
+    background: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.14);
+}
+
+:root[data-theme="light"] #loginButton,
+:root[data-theme="light"] #requestPasswordResetButton,
+:root[data-theme="light"] #saveNewPasswordButton {
+    border-color: rgba(124, 58, 237, 0.35);
+    background: rgba(124, 58, 237, 0.08);
+    color: #4C1D95;
+}
+
+:root[data-theme="light"] #loginButton:hover:not(:disabled),
+:root[data-theme="light"] #requestPasswordResetButton:hover:not(:disabled),
+:root[data-theme="light"] #saveNewPasswordButton:hover:not(:disabled) {
+    border-color: rgba(124, 58, 237, 0.55);
+    background: rgba(124, 58, 237, 0.14);
+}
+
+:root[data-theme="light"] #forgotPasswordLink {
+    color: #6D28D9;
+}
+
+:root[data-theme="light"] #forgotPasswordLink:hover {
+    color: #4C1D95;
+}

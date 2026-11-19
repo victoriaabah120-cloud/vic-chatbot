@@ -11,12 +11,14 @@ from pydantic import BaseModel
 from supabase import create_client
 
 from app import images as image_store
+from app.announcements import router as announcements_router
 from app.integrations.agent import run_chat_with_plugins
 from app.integrations.router import router as integrations_router
 
 app = FastAPI()
 
 app.include_router(integrations_router)
+app.include_router(announcements_router)
 
 app.add_middleware(
     CORSMiddleware,

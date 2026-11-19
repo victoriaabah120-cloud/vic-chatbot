@@ -23,6 +23,9 @@ const supabaseClient =
         SUPABASE_PUBLISHABLE_KEY
     );
 
+// profile.js reads the same client so every screen talks to one session.
+window.vicSupabase = supabaseClient;
+
 
 // ==============================
 // FASTAPI BACKEND
@@ -594,6 +597,11 @@ function showChat(session) {
     adminDashboardLink.hidden =
         session?.user?.app_metadata?.role !== "admin";
 
+    // Personalise the greeting, avatar and name from the profile table.
+    if (window.vicProfile) {
+        window.vicProfile.load(session);
+    }
+
     loadConversationHistory(true);
 }
 
@@ -611,6 +619,10 @@ function showAuth() {
 
     adminDashboardLink.hidden =
         true;
+
+    if (window.vicProfile) {
+        window.vicProfile.clear();
+    }
 
     loginForm.hidden =
         false;
