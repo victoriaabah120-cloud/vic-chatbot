@@ -3617,8 +3617,8 @@ body.chat-active {
 #chatHeader.welcome-panel {
     display: flex;
     flex-direction: column;
-    gap: 11px;
-    padding: 15px clamp(14px, 2vw, 20px) 16px;
+    gap: 7px;
+    padding: 10px clamp(12px, 1.8vw, 18px) 11px;
     border: 1px solid var(--border);
     border-radius: 18px;
     background: var(--surface);
@@ -3722,5 +3722,124 @@ body.chat-active {
         height: 46px;
         border-radius: 14px;
         font-size: 0.95rem;
+    }
+}
+
+/* ============================================================
+   COMPACT WELCOME HEADER + SIDEBAR THEME CONTROL
+
+   The header used to hold a toggle row, a large heading and a tall card,
+   which ate the conversation. The toggle now lives at the top left of the
+   sidebar, and the header is a single line of greeting plus a slim card.
+   ============================================================ */
+
+.sidebar-topbar {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 0 10px;
+}
+
+.sidebar-topbar .theme-toggle-compact {
+    width: auto;
+    min-height: 34px;
+    padding: 6px 11px;
+    border-radius: 11px;
+    gap: 7px;
+    font-size: 0.78rem;
+}
+
+.sidebar-topbar .theme-toggle-compact svg {
+    width: 16px;
+    height: 16px;
+}
+
+.welcome-heading-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.welcome-heading {
+    margin: 0;
+    font-size: clamp(1.05rem, 2.1vw, 1.3rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+#chatHeader.welcome-panel .welcome-heading {
+    margin: 0;
+}
+
+.welcome-profile-card {
+    padding: 9px 12px;
+    gap: 10px;
+    border-radius: 13px;
+}
+
+#chatHeader .profile-avatar-lg {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    font-size: 0.82rem;
+}
+
+.welcome-eyebrow {
+    margin: 0;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+}
+
+.welcome-name {
+    margin: 1px 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.welcome-note {
+    margin: 2px 0 0;
+    color: var(--text-soft);
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+    #chatHeader.welcome-panel {
+        padding: 8px 10px 9px;
+        gap: 6px;
+    }
+
+    #chatHeader .profile-avatar-lg {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+    }
+
+    .welcome-profile-card {
+        padding: 8px 10px;
+        gap: 9px;
+    }
+
+    .welcome-note {
+        font-size: 0.73rem;
+    }
+
+    .sidebar-topbar .theme-toggle-compact {
+        min-height: 32px;
+        padding: 5px 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    /* keep the writeup, just smaller, so the card never crowds the chat */
+    .welcome-note {
+        font-size: 0.7rem;
+    }
+
+    .welcome-name {
+        font-size: 0.85rem;
     }
 }
