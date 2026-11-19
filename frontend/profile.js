@@ -33,7 +33,36 @@ function titleCase(word) {
 }
 
 /** "victoria.abah" -> "Victoria Abah", "MICHAEL" -> "Michael", "v.abah" -> "Abah". */
-function formatName(raw) {
+
+/* Names written without a separator ("victoriaabah") are split when the first
+   half is a familiar first name, so the greeting can say "Hello, Victoria"
+   instead of "Hello, Victoriaabah". */
+const COMMON_FIRST_NAMES = new Set(["ada", "adam", "adrian", "agnes", "ahmed", "aisha", "alan", "albert", "alex", "alexander", "alfred", "alice", "alicia", "amanda", "amber", "amina", "amos", "amy", "andrew", "angela", "anita", "ann", "anna", "anne", "anthony", "antony", "arthur", "ashley", "austin", "barbara", "beatrice", "benjamin", "bernard", "beth", "betty", "beverly", "blake", "blessing", "bobby", "bonnie", "brad", "bradley", "brandon", "brenda", "brian", "bridget", "bruce", "caleb", "cameron", "carl", "carlos", "carmen", "carol", "caroline", "carolyn", "catherine", "cecilia", "charles", "charlotte", "chelsea", "cheryl", "chidi", "chinelo", "chioma", "christian", "christina", "christine", "christopher", "claire", "clara", "clinton", "cody", "colin", "connie", "craig", "cynthia", "daniel", "danielle", "danny", "darren", "david", "deborah", "debra", "denise", "dennis", "derek", "diana", "diane", "donald", "donna", "doris", "dorothy", "douglas", "duncan", "dylan", "edward", "eileen", "elaine", "eleanor", "elias", "elijah", "elizabeth", "ella", "ellen", "emeka", "emily", "emma", "emmanuel", "eric", "erica", "esther", "eugene", "eunice", "eva", "evelyn", "faith", "fatima", "felix", "fiona", "florence", "frances", "francis", "frank", "frederick", "gabriel", "gary", "george", "gerald", "gina", "gloria", "grace", "gregory", "hannah", "harold", "harriet", "harry", "heather", "helen", "henry", "hope", "howard", "hugo", "ian", "ifeanyi", "ifeoma", "ignatius", "irene", "isaac", "isabel", "isabella", "jack", "jackson", "jacob", "james", "jamie", "jane", "janet", "janice", "jason", "jennifer", "jeremy", "jerome", "jesse", "jessica", "joan", "joanna", "joel", "john", "jonathan", "jordan", "joseph", "josephine", "joshua", "joy", "joyce", "juan", "judith", "judy", "julia", "julian", "julie", "justin", "karen", "kate", "katherine", "kathleen", "kathy", "keith", "kelly", "kelvin", "ken", "kenneth", "kevin", "kimberly", "kirsty", "kola", "kunle", "kyle", "larry", "laura", "lauren", "lawrence", "leah", "leonard", "leslie", "linda", "lisa", "lois", "louis", "louise", "lucas", "lucy", "luke", "lydia", "maggie", "magdalene", "malcolm", "margaret", "maria", "marian", "marie", "marilyn", "mario", "marion", "mark", "martha", "martin", "mary", "mathew", "matthew", "maureen", "maxwell", "megan", "melissa", "michael", "michelle", "mike", "mildred", "miriam", "molly", "monica", "morgan", "moses", "nancy", "naomi", "natalie", "nathan", "nathaniel", "neil", "ngozi", "nicholas", "nicole", "nnamdi", "noah", "nora", "norman", "obinna", "oliver", "olivia", "oluwaseun", "oluwatosin", "omar", "oscar", "pamela", "patricia", "patrick", "paul", "paula", "peter", "philip", "phillip", "phoebe", "rachel", "ralph", "raymond", "rebecca", "regina", "richard", "rita", "robert", "roberta", "rodney", "roger", "ronald", "rose", "rosemary", "roy", "ruth", "samuel", "sandra", "sara", "sarah", "scott", "sean", "sebastian", "segun", "sharon", "sheila", "simon", "sophia", "stephanie", "stephen", "steve", "steven", "susan", "suzanne", "sylvia", "tanya", "teresa", "terry", "thelma", "theodore", "thomas", "timothy", "tina", "tobias", "todd", "tope", "tracy", "travis", "trevor", "tunde", "tyrone", "uche", "valerie", "vanessa", "veronica", "victor", "victoria", "vincent", "violet", "virginia", "vivian", "walter", "wanda", "wayne", "wesley", "william", "winifred", "yemi", "yusuf", "zainab", "zoe"]);
+
+function splitJoinedName(word) {
+    const lower = String(word || "").toLowerCase();
+
+    if (lower.length < 7 || !/^[a-z]+$/.test(lower)) {
+        return null;
+    }
+
+    // Four letters is the floor: it keeps "Daniel" whole while still splitting
+    // "Johnsmith" and "Victoriaabah".
+    const limit = Math.min(lower.length - 3, 12);
+
+    for (let cut = limit; cut >= 4; cut -= 1) {
+        const head = lower.slice(0, cut);
+        const tail = lower.slice(cut);
+
+        if (tail.length >= 3 && COMMON_FIRST_NAMES.has(head)) {
+            return [head, tail];
+        }
+    }
+
+    return null;
+}
+
+function formatName(raw, options = {}) {
     if (!raw) {
         return "";
     }
@@ -49,6 +78,13 @@ function formatName(raw) {
     let words = tokens.filter((word) => word.length > 1);
     if (!words.length) {
         words = tokens;
+    }
+
+    if (options.split !== false) {
+        words = words.flatMap((word) => {
+            const parts = splitJoinedName(word);
+            return parts ? parts : [word];
+        });
     }
 
     return words.map(titleCase).join(" ");
@@ -257,7 +293,7 @@ async function load(session) {
         const isCustom = row?.display_name_is_custom === true;
 
         if (isCustom && stored) {
-            state.name = formatName(stored) || stored;
+            state.name = formatName(stored, { split: false }) || stored;
             state.initials = initialsFor(state.name);
             render();
         } else if (fromSession) {
