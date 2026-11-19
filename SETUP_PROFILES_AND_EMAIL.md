@@ -161,3 +161,77 @@ Behaviour:
   no client can write.
 - The landing page keeps its cinematic dark hero in both themes; the theme
   toggle belongs to the app and the sign-in screen.
+
+---
+
+# Google sign-in
+
+The **Continue with Google** button under the email form uses Supabase OAuth. Nothing
+about it is hardcoded: the browser is sent to Supabase, which sends it to Google, and
+the session comes back to the same page where `checkSession()` already picks it up.
+
+## 1. Google Cloud Console
+
+1. Go to <https://console.cloud.google.com/> and pick (or create) a project.
+2. **APIs & Services → OAuth consent screen**: choose *External*, fill in the app name
+   "Vic Chatbot", your support email and developer email. Add the scope
+   `.../auth/userinfo.email`, `.../auth/userinfo.profile` and `openid`. Publish the app
+   (or add test users while it is in testing).
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**
+   - Name: `Vic Chatbot web`
+   - **Authorised JavaScript origins**
+     - `https://vic-chatbot-frontend.onrender.com`
+     - `http://localhost:8098` (only if you test locally)
+   - **Authorised redirect URIs**
+     - `https://ibsyrfulsxlnitilxcaa.supabase.co/auth/v1/callback`
+   - Copy the **Client ID** and **Client secret**.
+
+The redirect URI is Supabase's callback, not your own page. Supabase bounces the user
+back to `/app.html` afterwards.
+
+## 2. Supabase dashboard
+
+1. **Authentication → Providers → Google**: enable it, paste the Client ID and Client
+   secret from step 1, save.
+2. **Authentication → URL Configuration**:
+   - **Site URL**: `https://vic-chatbot-frontend.onrender.com`
+   - **Redirect URLs**: add
+     `https://vic-chatbot-frontend.onrender.com/app.html` and
+     `http://localhost:8098/app.html`
+3. **SQL editor**: run `app/sql/002_google_oauth_profiles.sql` (after the first
+   migration). It adds `display_name_is_custom` and `avatar_url`, and updates the
+   signup trigger so a Google account arrives with the name Google already knows.
+
+No keys go into the frontend. The publishable key is already public by design; the
+Google client secret lives only in Supabase.
+
+## 3. What happens on sign-in
+
+- **Success**: Supabase stores the session, the page reloads at `/app.html`, the chat
+  opens and the welcome card shows the Google name.
+- **Cancelled**: Google returns `?error=access_denied`; the page shows
+  "Google sign-in was cancelled…" and cleans the URL.
+- **Failure**: any other error shows "Google sign-in did not complete. Please try
+  again." and leaves email/password untouched.
+- **Duplicate accounts**: Google returns a verified email, so Supabase attaches the
+  identity to the existing confirmed account with that email instead of creating a
+  second user. If two accounts ever appear for one person, open Auth → Users →
+  Identities and merge.
+
+## 4. Name priority
+
+1. A name the person corrected themselves (`display_name_is_custom = true`).
+2. Google's `full_name` / `name` from the auth metadata.
+3. The stored `profiles.full_name` / `display_name`.
+4. A name guessed from the email local part (`victoria.abah@…` → Victoria Abah).
+
+A correction is never overwritten by a later sign-in.
+
+## 5. Quick check
+
+1. Open `/app.html`, click **Continue with Google**, pick an account.
+2. Land in the chat with "WELCOME BACK / Hello, <first name> 👋 / <full name>" and
+   initials in the square avatar.
+3. Click the pencil, change the name, save; the greeting and initials update.
+4. Sign out, sign back in with Google: your corrected name stays.

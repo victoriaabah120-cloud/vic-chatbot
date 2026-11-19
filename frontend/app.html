@@ -23,7 +23,7 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style.css?v=31">
     <link rel="stylesheet" href="auth.css?v=2">
 </head>
 
@@ -91,6 +91,24 @@
             Log In
         </button>
 
+        <div class="auth-divider" role="separator" aria-label="or">
+            <span>or</span>
+        </div>
+
+        <button id="googleButton" type="button" class="google-button">
+            <span class="google-button-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" focusable="false">
+                    <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.6 9.5 24 9.5z" />
+                    <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v8.4h12.6c-.3 2.1-1.6 5.2-4.6 7.3l7.6 5.9c4.4-4.1 6.5-10.1 6.5-17.5z" />
+                    <path fill="#FBBC05" d="M10.4 28.7A14.6 14.6 0 0 1 9.6 24c0-1.6.3-3.2.8-4.7l-7.8-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z" />
+                    <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.6-5.9l-7.6-5.9c-2 1.4-4.7 2.4-8 2.4-6.4 0-11.7-3.7-13.6-8.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
+                </svg>
+            </span>
+            <span class="google-button-label">Continue with Google</span>
+        </button>
+
+        <p id="googleMessage" role="status"></p>
+
         <p><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
         <p id="authMessage" role="status"></p>
 
@@ -132,12 +150,7 @@
                     <div class="profile-identity">
                         <p class="profile-greeting">Hello! 👋</p>
                         <p class="profile-name" data-profile-name>Vic member</p>
-                        <span class="profile-badge" data-profile-badge data-role="member">
-                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path d="M12 3.2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" />
-                            </svg>
-                            <span>Member</span>
-                        </span>
+
                     </div>
                     <button
                         id="profileEditButton"
@@ -229,8 +242,9 @@
                     <div class="welcome-banner-copy welcome-banner-profile">
                         <div class="profile-avatar profile-avatar-lg" data-profile-avatar data-profile-initials aria-hidden="true">V</div>
                         <div class="welcome-banner-text">
+                            <p class="welcome-eyebrow">Welcome back</p>
                             <h1 data-profile-greeting>Hello! 👋</h1>
-                            <p data-profile-subtitle>Welcome back to Vic Chatbot. How can I help you today?</p>
+                            <p class="welcome-name" data-profile-name>Vic member</p>
                         </div>
                     </div>
                     <button
@@ -331,9 +345,9 @@
 
     <!-- Our JavaScript -->
     <script type="module" src="theme.js?v=1"></script>
-    <script type="module" src="profile.js?v=1"></script>
+    <script type="module" src="profile.js?v=2"></script>
     <script type="module" src="composer.js?v=1"></script>
-    <script type="module" src="script.js?v=17"></script>
+    <script type="module" src="script.js?v=18"></script>
 
 </body>
 </html>

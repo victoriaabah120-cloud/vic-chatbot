@@ -1705,6 +1705,93 @@ logoutButton.addEventListener(
     logout
 );
 
+// ==============================
+// GOOGLE SIGN-IN (Supabase OAuth)
+// ==============================
+
+const googleButton =
+    document.getElementById("googleButton");
+
+const googleMessage =
+    document.getElementById("googleMessage");
+
+function setGoogleMessage(text, tone) {
+    if (!googleMessage) {
+        return;
+    }
+
+    googleMessage.textContent = text || "";
+    googleMessage.dataset.tone = tone || "";
+}
+
+async function signInWithGoogle() {
+    if (!googleButton) {
+        return;
+    }
+
+    setGoogleMessage("", "");
+    googleButton.disabled = true;
+    googleButton.dataset.loading = "true";
+
+    const label = googleButton.querySelector(".google-button-label");
+    const original = label ? label.textContent : "";
+    if (label) {
+        label.textContent = "Opening Google...";
+    }
+
+    try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                // Come back to this same page; checkSession() picks the session up.
+                redirectTo: window.location.origin + window.location.pathname,
+                queryParams: { prompt: "select_account" }
+            }
+        });
+
+        if (error) {
+            setGoogleMessage(
+                error.message || "Google sign-in could not start. Please try again.",
+                "error"
+            );
+            return;
+        }
+
+        // On success the browser leaves for Google; nothing else to do here.
+    } catch (error) {
+        setGoogleMessage("Google sign-in is unavailable right now.", "error");
+    } finally {
+        googleButton.disabled = false;
+        googleButton.dataset.loading = "false";
+        if (label) {
+            label.textContent = original || "Continue with Google";
+        }
+    }
+}
+
+if (googleButton) {
+    googleButton.addEventListener("click", signInWithGoogle);
+}
+
+// A cancelled or failed OAuth round trip comes back as query parameters.
+(function reportOAuthReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("error_description") || params.get("error");
+
+    if (!oauthError) {
+        return;
+    }
+
+    const friendly = /access_denied|cancell?ed/i.test(oauthError)
+        ? "Google sign-in was cancelled. You can try again or use your email."
+        : "Google sign-in did not complete. Please try again.";
+
+    setGoogleMessage(friendly, "error");
+    authMessage.textContent = "";
+
+    window.history.replaceState({}, "", window.location.pathname);
+})();
+
 forgotPasswordLink.addEventListener(
     "click",
     function(event) {

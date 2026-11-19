@@ -107,7 +107,8 @@ function render() {
     const name = state.name || "Vic member";
     const initials = state.initials || initialsFor(name);
 
-    const greeting = state.name ? `Hello, ${state.name}! 👋` : GREETING_DEFAULT;
+    const firstName = state.name ? state.name.split(" ")[0] : "";
+    const greeting = firstName ? `Hello, ${firstName} 👋` : GREETING_DEFAULT;
 
     document.querySelectorAll("[data-profile-initials]").forEach((node) => {
         node.textContent = initials;
@@ -129,12 +130,6 @@ function render() {
         node.setAttribute("aria-label", `${name} profile avatar`);
         node.dataset.initials = initials;
     });
-
-    const badge = document.querySelector("[data-profile-badge]");
-    if (badge) {
-        badge.textContent = state.isAdmin ? "Admin" : "Member";
-        badge.dataset.role = state.isAdmin ? "admin" : "member";
-    }
 
     const nameInput = document.getElementById("profileNameInput");
     if (nameInput && document.activeElement !== nameInput) {
@@ -190,6 +185,8 @@ async function ensureProfileRow(userId, fallbackName) {
         return null;
     }
 
+    // ignoreDuplicates keeps an existing row untouched: a name the person
+    // corrected themselves must survive every later sign-in.
     const { error } = await supabase
         .from(PROFILE_TABLE)
         .upsert(
@@ -198,7 +195,7 @@ async function ensureProfileRow(userId, fallbackName) {
                 display_name: fallbackName || null,
                 avatar_initials: initialsFor(fallbackName)
             },
-            { onConflict: "id" }
+            { onConflict: "id", ignoreDuplicates: true }
         );
 
     if (error) {
@@ -254,15 +251,27 @@ async function load(session) {
             row = await ensureProfileRow(userId, fromSession);
         }
 
+        // Priority: the person's own correction, then the name Google handed
+        // Supabase, then whatever the row already holds, then the email guess.
         const stored = (row?.display_name || "").trim();
+        const isCustom = row?.display_name_is_custom === true;
 
-        if (stored) {
+        if (isCustom && stored) {
             state.name = formatName(stored) || stored;
             state.initials = initialsFor(state.name);
             render();
         } else if (fromSession) {
-            // Give the row the name we derived, so every device agrees.
-            await ensureProfileRow(userId, fromSession);
+            // Google metadata already covers this account; keep the row in step.
+            if (stored !== fromSession) {
+                await ensureProfileRow(userId, fromSession);
+            }
+            state.name = fromSession;
+            state.initials = initialsFor(fromSession);
+            render();
+        } else if (stored) {
+            state.name = formatName(stored) || stored;
+            state.initials = initialsFor(state.name);
+            render();
         }
 
         await loadPreferences(userId);
@@ -299,13 +308,25 @@ async function saveName(rawName) {
 
     setStatus("Saving...", "");
 
-    const { error } = await supabase
+    let { error } = await supabase
         .from(PROFILE_TABLE)
         .update({
             display_name: name,
-            avatar_initials: initialsFor(name)
+            avatar_initials: initialsFor(name),
+            display_name_is_custom: true
         })
         .eq("id", state.user.id);
+
+    if (error && /display_name_is_custom/.test(error.message || "")) {
+        // The 002 migration has not been applied yet; the name still saves.
+        ({ error } = await supabase
+            .from(PROFILE_TABLE)
+            .update({
+                display_name: name,
+                avatar_initials: initialsFor(name)
+            })
+            .eq("id", state.user.id));
+    }
 
     if (error) {
         setStatus("Could not save your name. Please try again.", "error");
