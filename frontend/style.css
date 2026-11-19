@@ -3614,15 +3614,19 @@ body.chat-active {
    card carries no email and no plan label by design.
    ============================================================ */
 
+/* The greeting sits straight on the page, not inside a panel; only the
+   identity card has a surface. */
 #chatHeader.welcome-panel {
     display: flex;
     flex-direction: column;
-    gap: 7px;
-    padding: 10px clamp(12px, 1.8vw, 18px) 11px;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    gap: 6px;
+    width: min(100%, 740px);
+    margin: 0 auto;
+    padding: 2px 0 6px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .welcome-panel-top {
@@ -3762,7 +3766,7 @@ body.chat-active {
 
 .welcome-heading {
     margin: 0;
-    font-size: clamp(1.05rem, 2.1vw, 1.3rem);
+    font-size: clamp(1rem, 1.9vw, 1.2rem);
     font-weight: 700;
     letter-spacing: -0.01em;
     line-height: 1.2;
@@ -3773,20 +3777,21 @@ body.chat-active {
 }
 
 .welcome-profile-card {
-    padding: 9px 12px;
-    gap: 10px;
-    border-radius: 13px;
+    padding: 8px 11px;
+    gap: 9px;
+    border-radius: 12px;
 }
 
 #chatHeader .profile-avatar-lg {
-    width: 40px;
-    height: 40px;
-    border-radius: 11px;
-    font-size: 0.82rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 0.76rem;
 }
 
 .welcome-eyebrow {
     margin: 0;
+    font-size: 0.62rem;
     font-size: 0.6rem;
     letter-spacing: 0.14em;
 }
@@ -3807,7 +3812,7 @@ body.chat-active {
 
 @media (max-width: 600px) {
     #chatHeader.welcome-panel {
-        padding: 8px 10px 9px;
+        padding: 2px 0 6px;
         gap: 6px;
     }
 
@@ -3841,5 +3846,45 @@ body.chat-active {
 
     .welcome-name {
         font-size: 0.85rem;
+    }
+}
+
+/* Phones: the greeting and card together stay under about a fifth of the
+   screen, so the conversation keeps the room. */
+@media (max-width: 600px) {
+    #chatHeader.welcome-panel {
+        gap: 5px;
+        padding: 0 0 4px;
+    }
+
+    .welcome-heading {
+        font-size: 1rem;
+    }
+
+    .welcome-profile-card {
+        padding: 7px 10px;
+        gap: 8px;
+        border-radius: 11px;
+    }
+
+    #chatHeader .profile-avatar-lg {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        font-size: 0.72rem;
+    }
+
+    .welcome-eyebrow {
+        font-size: 0.58rem;
+    }
+
+    .welcome-name {
+        font-size: 0.86rem;
+    }
+
+    .welcome-note {
+        margin-top: 1px;
+        font-size: 0.72rem;
+        line-height: 1.3;
     }
 }

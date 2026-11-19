@@ -6,7 +6,7 @@ const PROFILE_TABLE = "profiles";
 const PREFERENCES_TABLE = "email_preferences";
 
 const GREETING_DEFAULT = "Hello! 👋";
-const SUBTITLE_DEFAULT = "Ask anything and Vic will help you think it through.";
+const SUBTITLE_DEFAULT = "Turn your curiosity into clarity. Start a conversation with Vic.";
 
 const state = {
     session: null,
