@@ -23,7 +23,7 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="style.css?v=31">
+    <link rel="stylesheet" href="style.css?v=32">
     <link rel="stylesheet" href="auth.css?v=2">
 </head>
 
@@ -229,44 +229,48 @@
             </aside>
 
             <main id="chatMain">
-                <header id="chatHeader" class="welcome-banner chat-welcome-banner">
-                    <button
-                        id="mobileMenuButton"
-                        type="button"
-                        aria-controls="conversationSidebar"
-                        aria-expanded="false"
-                        aria-label="Open conversation menu"
-                    >
-                        Menu
-                    </button>
-                    <div class="welcome-banner-copy welcome-banner-profile">
+                <header id="chatHeader" class="welcome-panel">
+                    <div class="welcome-panel-top">
+                        <button
+                            id="mobileMenuButton"
+                            type="button"
+                            aria-controls="conversationSidebar"
+                            aria-expanded="false"
+                            aria-label="Open conversation menu"
+                        >
+                            Menu
+                        </button>
+
+                        <button
+                            type="button"
+                            class="theme-toggle theme-toggle-compact"
+                            data-theme-toggle
+                            aria-pressed="false"
+                            aria-label="Switch to light mode"
+                        >
+                            <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
+                                </svg>
+                            </span>
+                            <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="12" r="4" />
+                                    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <h1 class="welcome-heading" data-profile-greeting>Hello! 👋</h1>
+
+                    <div class="welcome-profile-card">
                         <div class="profile-avatar profile-avatar-lg" data-profile-avatar data-profile-initials aria-hidden="true">V</div>
-                        <div class="welcome-banner-text">
+                        <div class="welcome-profile-copy">
                             <p class="welcome-eyebrow">Welcome back</p>
-                            <h1 data-profile-greeting>Hello! 👋</h1>
                             <p class="welcome-name" data-profile-name>Vic member</p>
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        class="theme-toggle theme-toggle-compact"
-                        data-theme-toggle
-                        aria-pressed="false"
-                        aria-label="Switch to light mode"
-                    >
-                        <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false">
-                                <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
-                            </svg>
-                        </span>
-                        <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false">
-                                <circle cx="12" cy="12" r="4" />
-                                <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4" />
-                            </svg>
-                        </span>
-                        <span class="theme-toggle-text" data-theme-next>Light mode</span>
-                    </button>
                 </header>
 
                 <div id="chat"></div>
