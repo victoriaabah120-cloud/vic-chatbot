@@ -375,3 +375,24 @@ body.auth-page::before {
 :root[data-theme="light"] #forgotPasswordLink:hover {
     color: #4C1D95;
 }
+
+/* The global button rules stretch every button inside the auth card; the theme
+   toggle must stay a compact square so the brand row never widens the page. */
+.auth-page #authSection .theme-toggle,
+.auth-page #authSection .auth-topbar .theme-toggle {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 380px) {
+    .auth-page #authSection .theme-toggle {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        min-height: 34px;
+    }
+}
