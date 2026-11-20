@@ -10,8 +10,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 
+from app import documents, memory, websearch
 from app import images as image_store
 from app.announcements import router as announcements_router
+from app.documents import router as documents_router
+from app.exports import router as exports_router
+from app.memory import router as memory_router
+from app.shares import router as shares_router
+from app.websearch import router as search_router
 from app.integrations.agent import run_chat_with_plugins
 from app.integrations.router import router as integrations_router
 
@@ -19,6 +25,11 @@ app = FastAPI()
 
 app.include_router(integrations_router)
 app.include_router(announcements_router)
+app.include_router(documents_router)
+app.include_router(memory_router)
+app.include_router(search_router)
+app.include_router(exports_router)
+app.include_router(shares_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +66,8 @@ def home():
 class ChatRequest(BaseModel):
     conversation_id: str
     message: str
+    attachment_ids: list[str] = []
+    use_search: bool = False
 
 
 class ImageRequest(BaseModel):
@@ -589,11 +602,43 @@ def chat(
         "role": "user",
         "content": request.message
     }
+
+    # Long-term memory, attached files and fresh web results are assembled
+    # here, on the server, and never handed to the browser.
+    memory_context = ""
+    document_context = ""
+    attachment_summaries = []
+    search_results = []
+    try:
+        memory_context = memory.build_context(supabase, user.id)
+    except Exception as error:
+        print("MEMORY CONTEXT ERROR:", repr(error))
+    try:
+        document_context, attachment_summaries = documents.build_context(
+            supabase, user.id, request.attachment_ids
+        )
+    except Exception as error:
+        print("DOCUMENT CONTEXT ERROR:", repr(error))
+
+    searched = False
+    if websearch.configured() and (request.use_search or websearch.should_search(request.message)):
+        search_results = websearch.search(request.message)
+        searched = bool(search_results)
+
     supabase.table("messages").insert({
         **user_message,
         "conversation_id": request.conversation_id,
+        "attachments": attachment_summaries or None,
     }).execute()
     history.append(user_message)
+
+    # Anything the person explicitly asked Vic to remember is stored now.
+    try:
+        if memory.memory_enabled(supabase, user.id):
+            for phrase in memory.detect_memories(request.message):
+                memory.save_memory(supabase, user.id, phrase)
+    except Exception as error:
+        print("MEMORY SAVE ERROR:", repr(error))
 
     try:
         answer = run_chat_with_plugins(
@@ -667,6 +712,20 @@ Plain-text and accuracy requirements:
 - If you are unsure about a factual claim, say so instead of guessing.
 """
                 },
+                *(
+                    [{
+                        "role": "system",
+                        "content": "\n\n".join(
+                            block for block in (
+                                memory_context,
+                                document_context,
+                                websearch.build_context(search_results),
+                            ) if block
+                        ),
+                    }]
+                    if (memory_context or document_context or search_results)
+                    else []
+                ),
                 *history[-12:]
             ]
         )
@@ -685,6 +744,7 @@ Plain-text and accuracy requirements:
     supabase.table("messages").insert({
         **assistant_message,
         "conversation_id": request.conversation_id,
+        "sources": search_results or None,
     }).execute()
 
     # Name the conversation after its first message
@@ -702,7 +762,10 @@ Plain-text and accuracy requirements:
             pass
 
     return {
-        "message": answer
+        "message": answer,
+        "sources": search_results,
+        "attachments": attachment_summaries,
+        "searched": searched,
     }
 
 @app.get("/image/status")

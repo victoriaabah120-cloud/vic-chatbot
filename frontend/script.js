@@ -139,7 +139,7 @@ async function handleExpiredSession() {
         scope: "local"
     });
 
-    conversationId = null;
+    setConversationId(null);
 
     showAuth();
 
@@ -442,6 +442,14 @@ function readReplyAloud(message, readButton, stopButton) {
 
 let conversationId = null;
 
+// The assistant features (export, share, attachments) need the open
+// conversation; keep a single source of truth on the window object.
+function setConversationId(value) {
+    conversationId = value;
+    window.vicCurrentConversationId = value;
+}
+
+
 let conversationLoadSequence = 0;
 
 
@@ -571,7 +579,7 @@ async function logout() {
         return;
     }
 
-    conversationId = null;
+    setConversationId(null);
 
     showAuth();
 }
@@ -642,7 +650,7 @@ function showAuth() {
     authMessage.textContent =
         "";
 
-    conversationId = null;
+    setConversationId(null);
 
     conversationList.replaceChildren();
 
@@ -662,7 +670,7 @@ async function handleAccountSuspended(response) {
     }
 
     await supabaseClient.auth.signOut({ scope: "local" });
-    conversationId = null;
+    setConversationId(null);
     showAuth();
     authMessage.textContent = data.detail;
     return true;
@@ -1156,6 +1164,8 @@ function addMessage(
 
     chat.scrollTop =
         chat.scrollHeight;
+
+    return messageElement;
 }
 
 
@@ -1186,8 +1196,11 @@ async function createConversation(
     const data =
         await response.json();
 
-    conversationId =
-        data.conversation_id;
+    setConversationId(
+
+        data.conversation_id
+
+    );
 
     await loadConversationHistory();
 
@@ -1208,7 +1221,7 @@ function showEmptyChat() {
 
 function startNewConversation() {
     conversationLoadSequence += 1;
-    conversationId = null;
+    setConversationId(null);
     showEmptyChat();
 
     conversationList
@@ -1339,7 +1352,7 @@ async function loadConversationHistory(openMostRecent = false) {
         if (openMostRecent && data.conversations.length) {
             await openConversation(data.conversations[0].id);
         } else if (openMostRecent) {
-            conversationId = null;
+            setConversationId(null);
             showEmptyChat();
         }
 
@@ -1364,8 +1377,11 @@ async function loadConversationHistory(openMostRecent = false) {
 
 async function openConversation(selectedConversationId) {
 
-    conversationId =
-        selectedConversationId;
+    setConversationId(
+
+        selectedConversationId
+
+    );
 
     const requestedConversationId =
         selectedConversationId;
@@ -1517,12 +1533,20 @@ async function openConversation(selectedConversationId) {
 
 async function sendMessage() {
 
-    const message =
+    let message =
         messageInput.value.trim();
 
-    if (!message) {
+    const hasAttachments =
+        Boolean(window.vicAssistant?.hasAttachments());
+
+    if (!message && !hasAttachments) {
 
         return;
+    }
+
+    if (!message) {
+        // A file on its own is a fair question.
+        message = "Please look at the attached file and tell me what matters in it.";
     }
 
     addMessage(
@@ -1570,6 +1594,14 @@ async function sendMessage() {
         const accessToken =
             session.access_token;
 
+        // Files must finish uploading before the message can reference them.
+        if (window.vicAssistant) {
+            const ready = await window.vicAssistant.ready();
+            if (!ready) {
+                return;
+            }
+        }
+
 
         // Create conversation if needed
         if (!conversationId) {
@@ -1598,7 +1630,11 @@ async function sendMessage() {
                             conversationId,
 
                         message:
-                            message
+                            message,
+
+                        ...(window.vicAssistant
+                            ? window.vicAssistant.payload()
+                            : {})
                     })
                 }
             );
@@ -1648,13 +1684,27 @@ async function sendMessage() {
             await response.json();
 
 
-        addMessage(
-            "Vic",
-            data.message
-        );
+        const answerNode =
+            addMessage(
+                "Vic",
+                data.message
+            );
+
+        if (window.vicAssistant) {
+            window.vicAssistant.decorate(
+                answerNode,
+                data
+            );
+            window.vicAssistant.searchStatus(false);
+            window.vicAssistant.reset();
+        }
 
 
     } catch (error) {
+
+        if (window.vicAssistant) {
+            window.vicAssistant.searchStatus(false);
+        }
 
         console.error(
             "Chat error:",

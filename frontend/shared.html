@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared conversation · Vic Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem("vic-theme");
+                document.documentElement.dataset.theme = saved === "light" ? "light" : "dark";
+            } catch (error) {
+                document.documentElement.dataset.theme = "dark";
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css?v=36">
+    <style>
+        body {
+            margin: 0;
+            padding: clamp(16px, 4vw, 40px);
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Inter", system-ui, sans-serif;
+        }
+
+        .shared-shell {
+            width: min(760px, 100%);
+            margin: 0 auto;
+        }
+
+        .shared-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            color: var(--text-soft);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .shared-brand span.dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--gradient);
+        }
+
+        .shared-head {
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .shared-head h1 {
+            margin: 0 0 4px;
+            font-size: clamp(1.3rem, 3vw, 1.7rem);
+        }
+
+        .shared-head p {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 0.8rem;
+        }
+
+        .shared-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 22px 0 32px;
+        }
+
+        .shared-message {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .shared-message.user {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .shared-who {
+            color: var(--text-soft);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .shared-bubble {
+            max-width: 92%;
+            padding: 12px 15px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            text-align: left;
+            overflow-wrap: anywhere;
+        }
+
+        .shared-message.user .shared-bubble {
+            border-color: transparent;
+            background: var(--gradient);
+            color: #FFFFFF;
+        }
+
+        .shared-bubble p {
+            margin: 0 0 8px;
+        }
+
+        .shared-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .shared-bubble code {
+            padding: 1px 5px;
+            border-radius: 5px;
+            background: rgba(139, 92, 246, 0.18);
+            font-size: 0.85em;
+        }
+
+        .shared-bubble pre {
+            overflow-x: auto;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.28);
+        }
+
+        .shared-bubble pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .shared-sources {
+            margin: 8px 0 0;
+            padding: 0;
+            list-style: none;
+            font-size: 0.76rem;
+        }
+
+        .shared-sources li + li {
+            margin-top: 4px;
+        }
+
+        .shared-sources a {
+            color: var(--accent-hover);
+        }
+
+        .shared-foot {
+            color: var(--text-soft);
+            font-size: 0.74rem;
+            text-align: center;
+        }
+
+        .shared-state {
+            padding: 40px 20px;
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-soft);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <main class="shared-shell">
+        <a class="shared-brand" href="index.html">
+            <span class="dot" aria-hidden="true"></span>
+            <span>Vic Chatbot</span>
+        </a>
+        <header class="shared-head">
+            <h1 id="sharedTitle">Shared conversation</h1>
+            <p id="sharedMeta">Loading...</p>
+        </header>
+        <div class="shared-thread" id="sharedThread" hidden></div>
+        <div class="shared-state" id="sharedState">Loading the conversation...</div>
+        <p class="shared-foot">Shared with Vic Chatbot. This page is read only.</p>
+    </main>
+
+    <script type="module" src="shared.js?v=1"></script>
+</body>
+</html>
