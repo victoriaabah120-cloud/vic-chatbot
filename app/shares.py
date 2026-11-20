@@ -100,33 +100,46 @@ def read_shared(token: str):
     from supabase import create_client
 
     client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY"))
-    share = (
-        client.table("conversation_shares")
-        .select("conversation_id,revoked_at")
-        .eq("token", token)
-        .limit(1)
-        .execute()
-    ).data
+    try:
+        share = (
+            client.table("conversation_shares")
+            .select("conversation_id,revoked_at")
+            .eq("token", token)
+            .limit(1)
+            .execute()
+        ).data
+    except Exception as error:  # noqa: BLE001
+        # Migration pending or a storage hiccup: never leak a 500 to a visitor.
+        print("SHARED READ ERROR:", repr(error))
+        raise HTTPException(status_code=404, detail="This link is no longer available.")
     if not share or share[0].get("revoked_at"):
         raise HTTPException(status_code=404, detail="This link is no longer available.")
 
-    conversation = (
-        client.table("conversations")
-        .select("title,created_at")
-        .eq("id", share[0]["conversation_id"])
-        .limit(1)
-        .execute()
-    ).data
+    try:
+        conversation = (
+            client.table("conversations")
+            .select("title,created_at")
+            .eq("id", share[0]["conversation_id"])
+            .limit(1)
+            .execute()
+        ).data
+    except Exception as error:  # noqa: BLE001
+        print("SHARED CONVERSATION ERROR:", repr(error))
+        raise HTTPException(status_code=404, detail="This link is no longer available.")
     if not conversation:
         raise HTTPException(status_code=404, detail="This link is no longer available.")
 
-    messages = (
-        client.table("messages")
-        .select("role,content,created_at,sources")
-        .eq("conversation_id", share[0]["conversation_id"])
-        .order("created_at")
-        .execute()
-    ).data or []
+    try:
+        messages = (
+            client.table("messages")
+            .select("role,content,created_at,sources")
+            .eq("conversation_id", share[0]["conversation_id"])
+            .order("created_at")
+            .execute()
+        ).data or []
+    except Exception as error:  # noqa: BLE001
+        print("SHARED MESSAGES ERROR:", repr(error))
+        raise HTTPException(status_code=404, detail="This link is no longer available.")
 
     return {
         "title": conversation[0].get("title") or "Shared conversation",
