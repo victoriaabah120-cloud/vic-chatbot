@@ -20,6 +20,21 @@ from app.integrations.deps import get_current_user_and_client
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
+MIGRATION_HINT = (
+    "This feature needs the assistant upgrade tables. Run "
+    "app/sql/003_assistant_upgrade.sql in Supabase, then try again."
+)
+
+
+def _guard(call, label):
+    """Run a table call, turning a missing table into a readable 503."""
+    try:
+        return call()
+    except Exception as error:  # noqa: BLE001
+        print(f"{label} ERROR:", repr(error))
+        raise HTTPException(status_code=503, detail=MIGRATION_HINT)
+
+
 BUCKET = "documents"
 MAX_BYTES = 20 * 1024 * 1024          # 20 MB per file
 MAX_IMAGE_BYTES = 8 * 1024 * 1024     # 8 MB per image
@@ -198,7 +213,10 @@ async def upload_document(
         "page_count": pages,
         "status": "ready",
     }
-    inserted = client.table("uploaded_documents").insert(record).execute()
+    inserted = _guard(
+        lambda: client.table("uploaded_documents").insert(record).execute(),
+        "DOCUMENT SAVE",
+    )
     if not inserted.data:
         raise HTTPException(status_code=502, detail="The file could not be registered.")
 

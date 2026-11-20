@@ -16,6 +16,21 @@ from app.integrations.deps import get_current_user_and_client
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 
+MIGRATION_HINT = (
+    "This feature needs the assistant upgrade tables. Run "
+    "app/sql/003_assistant_upgrade.sql in Supabase, then try again."
+)
+
+
+def _guard(call, label):
+    """Run a table call, turning a missing table into a readable 503."""
+    try:
+        return call()
+    except Exception as error:  # noqa: BLE001
+        print(f"{label} ERROR:", repr(error))
+        raise HTTPException(status_code=503, detail=MIGRATION_HINT)
+
+
 MAX_MEMORIES = 200
 MAX_LENGTH = 500
 
@@ -104,9 +119,14 @@ def save_memory(client, user_id: str, content: str, category: str = "general", s
         oldest = existing[-1]["id"]
         client.table("user_memories").delete().eq("id", oldest).eq("user_id", user_id).execute()
 
-    inserted = client.table("user_memories").insert(
-        {"user_id": user_id, "content": text, "category": category, "source": source}
-    ).execute()
+    inserted = _guard(
+        lambda: client.table("user_memories")
+        .insert(
+            {"user_id": user_id, "content": text, "category": category, "source": source}
+        )
+        .execute(),
+        "MEMORY SAVE",
+    )
     return (inserted.data or [None])[0]
 
 

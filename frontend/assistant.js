@@ -21,6 +21,7 @@ const ALLOWED = [
 const state = {
     attachments: [],
     useSearch: false,
+    searchReady: null,
     busy: false
 };
 
@@ -370,12 +371,28 @@ function initSearch() {
     button.appendChild(icon(["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "M16.5 16.5 21 21"]));
     button.appendChild(el("span", "composer-pill-label", "Web search"));
     button.addEventListener("click", () => {
+        if (state.searchReady === false) {
+            notify("Web search needs a search API key on the server first.", "error");
+            return;
+        }
         state.useSearch = !state.useSearch;
         button.setAttribute("aria-pressed", String(state.useSearch));
         button.classList.toggle("is-active", state.useSearch);
         notify(state.useSearch ? "Vic will search the web for this message." : "Web search off.");
     });
     actions.insertBefore(button, actions.firstChild);
+
+    // Only offer the switch when the backend actually has a search key.
+    api("/search/status")
+        .then((data) => {
+            state.searchReady = data.configured !== false;
+            if (!state.searchReady) {
+                button.classList.add("is-unavailable");
+                button.title = "Add TAVILY_API_KEY on the server to turn this on.";
+                button.setAttribute("aria-label", "Web search is not configured on the server");
+            }
+        })
+        .catch(() => {});
 }
 
 let searchRow = null;
