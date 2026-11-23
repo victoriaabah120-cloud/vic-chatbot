@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 
-from fastapi import APIRouter, File, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Header, HTTPException, Request
 
 from app.integrations.deps import get_current_user_and_client
 
@@ -36,11 +36,17 @@ def voice_status(authorization: str | None = Header(default=None)):
 
 @router.post("/transcribe")
 async def transcribe(
-    file: UploadFile = File(...),
+    request: Request,
     authorization: str | None = Header(default=None),
 ):
     """Turn a recorded clip into text with Groq Whisper."""
+    # Authentication first: an anonymous request never reaches the parser.
     get_current_user_and_client(authorization)
+
+    form = await request.form()
+    file = form.get("file")
+    if file is None or not hasattr(file, "read"):
+        raise HTTPException(status_code=400, detail="Attach a recording to transcribe.")
 
     data = await file.read()
     if not data:
