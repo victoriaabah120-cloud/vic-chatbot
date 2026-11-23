@@ -851,7 +851,7 @@ function createTable(rows) {
 
 
 // ==============================
-// FORMAT VIC'S RESPONSE
+// FORMAT VICORA'S RESPONSE
 // ==============================
 
 function formatResponse(message) {
@@ -1121,14 +1121,14 @@ function addMessage(
         document.createElement("div");
 
     messageElement.className =
-        sender === "Vic"
+        sender === "Vicora"
             ? "assistant-message"
             : "user-message";
 
     const contentElement =
         document.createElement("div");
 
-    if (sender === "Vic") {
+    if (sender === "Vicora") {
 
         contentElement.innerHTML =
             DOMPurify.sanitize(
@@ -1145,7 +1145,7 @@ function addMessage(
         contentElement
     );
 
-    if (sender === "Vic" && supportsSpeechSynthesis) {
+    if (sender === "Vicora" && supportsSpeechSynthesis) {
         const speechControls =
             document.createElement("div");
         speechControls.className = "speech-controls";
@@ -1510,7 +1510,7 @@ async function openConversation(selectedConversationId) {
             }
 
             addMessage(
-                message.role === "assistant" ? "Vic" : "You",
+                message.role === "assistant" ? "Vicora" : "You",
                 message.content
             );
         });
@@ -1699,7 +1699,7 @@ async function sendMessage() {
 
         const answerNode =
             addMessage(
-                "Vic",
+                "Vicora",
                 data.message
             );
 
@@ -1732,7 +1732,7 @@ async function sendMessage() {
         }
 
         addMessage(
-            "Vic",
+            "Vicora",
             error.friendly
                 ? error.message
                 : "Sorry, something went wrong. Please try again."

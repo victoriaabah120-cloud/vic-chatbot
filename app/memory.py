@@ -1,4 +1,4 @@
-"""Long-term memory: what Vic keeps about a person between conversations.
+"""Long-term memory: what Vicora keeps about a person between conversations.
 
 Every row is owned by one auth user, the queries always filter on that user,
 and the table carries row level security as a second wall.

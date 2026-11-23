@@ -1,5 +1,5 @@
 /* ============================================================
-   Vic Chatbot assistant features
+   VICORA AI assistant features
    Attachments, web search, memories, export and sharing.
 
    Every call goes to the existing FastAPI backend with the current
@@ -378,7 +378,7 @@ function initSearch() {
         state.useSearch = !state.useSearch;
         button.setAttribute("aria-pressed", String(state.useSearch));
         button.classList.toggle("is-active", state.useSearch);
-        notify(state.useSearch ? "Vic will search the web for this message." : "Web search off.");
+        notify(state.useSearch ? "Vicora will search the web for this message." : "Web search off.");
     });
     actions.insertBefore(button, actions.firstChild);
 
@@ -502,7 +502,7 @@ function openDialog(title, bodyBuilder) {
 
 async function openMemory() {
     openDialog("Memory", async (body) => {
-        body.appendChild(el("p", "dialog-note", "Loading what Vic remembers..."));
+        body.appendChild(el("p", "dialog-note", "Loading what Vicora remembers..."));
 
         let payload = { memories: [], enabled: true };
         try {
@@ -529,19 +529,19 @@ async function openMemory() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ enabled: toggle.checked })
                 });
-                notify(toggle.checked ? "Memory is on." : "Memory is off. Vic will not save new memories.");
+                notify(toggle.checked ? "Memory is on." : "Memory is off. Vicora will not save new memories.");
             } catch (error) {
                 notify("Could not update memory settings.", "error");
             }
         });
         toggleRow.appendChild(toggle);
-        toggleRow.appendChild(el("span", "", "Let Vic remember useful details between chats"));
+        toggleRow.appendChild(el("span", "", "Let Vicora remember useful details between chats"));
         body.appendChild(toggleRow);
 
         const addRow = el("form", "memory-add");
         const input = el("input");
         input.type = "text";
-        input.placeholder = "Something Vic should remember";
+        input.placeholder = "Something Vicora should remember";
         input.maxLength = 400;
         const addButton = el("button", "dialog-primary", "Save");
         addButton.type = "submit";
@@ -572,7 +572,7 @@ async function openMemory() {
 
         const list = el("ul", "memory-list");
         if (!payload.memories.length) {
-            list.appendChild(el("li", "memory-empty", "Nothing saved yet. Ask Vic to remember something, or add it above."));
+            list.appendChild(el("li", "memory-empty", "Nothing saved yet. Ask Vicora to remember something, or add it above."));
         }
         payload.memories.forEach((memory) => {
             const item = el("li", "memory-item");

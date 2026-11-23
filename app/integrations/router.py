@@ -149,7 +149,7 @@ def oauth_callback(
             )
         return HTMLResponse(
             content=(
-                "<h1>Vic Chatbot</h1>"
+                "<h1>VICORA AI</h1>"
                 f"<p>Status: {status}</p><p>{message}</p>"
                 "<p>Set FRONTEND_URL to send users back to the app.</p>"
             ),
@@ -258,7 +258,7 @@ async def telegram_webhook(
     if not text.startswith("/start"):
         _telegram_reply(
             chat_id,
-            "Hi. Open Vic Chatbot, go to Plugins, and press Connect "
+            "Hi. Open VICORA AI, go to Plugins, and press Connect "
             "Telegram to link this chat.",
         )
         return {"ok": True}
@@ -269,7 +269,7 @@ async def telegram_webhook(
     if not code:
         _telegram_reply(
             chat_id,
-            "Open Vic Chatbot, go to Plugins, and press Connect Telegram "
+            "Open VICORA AI, go to Plugins, and press Connect Telegram "
             "to link this chat.",
         )
         return {"ok": True}
@@ -284,7 +284,7 @@ async def telegram_webhook(
         _telegram_reply(
             chat_id,
             "That link has expired or was already used. Generate a new one "
-            "in Vic Chatbot under Plugins.",
+            "in VICORA AI under Plugins.",
         )
         return {"ok": True}
 
@@ -307,7 +307,7 @@ async def telegram_webhook(
 
     _telegram_reply(
         chat_id,
-        "Connected. Vic Chatbot can now send messages to this chat.",
+        "Connected. VICORA AI can now send messages to this chat.",
     )
     return {"ok": True}
 

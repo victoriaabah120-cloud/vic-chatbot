@@ -184,7 +184,7 @@ async def upload_document(
     except Exception as error:
         raise HTTPException(
             status_code=422,
-            detail=f"Vic could not read {file.filename}. Try another copy of the file.",
+            detail=f"Vicora could not read {file.filename}. Try another copy of the file.",
         ) from error
 
     document_id = str(uuid.uuid4())

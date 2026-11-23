@@ -1,4 +1,4 @@
--- Vic Chatbot: user profiles, email preferences and announcement log.
+-- VICORA AI: user profiles, email preferences and announcement log.
 -- Run this once in the Supabase SQL editor (Dashboard -> SQL -> New query).
 -- Safe to run again: every statement is guarded.
 

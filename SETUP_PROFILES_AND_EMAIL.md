@@ -69,7 +69,7 @@ invites) is sent by Supabase Auth, not by the app.
 | Username | your Brevo SMTP login (usually the account email) |
 | Password | the Brevo SMTP key |
 | Sender email | the verified sender |
-| Sender name | `Vic Chatbot` |
+| Sender name | `VICORA AI` |
 
 4. Authentication → URL configuration: Site URL
    `https://vic-chatbot-frontend.onrender.com`, and add
@@ -88,7 +88,7 @@ SMTP credentials live only in the Supabase dashboard. Nothing is in frontend cod
 | --- | --- | --- |
 | `BREVO_API_KEY` | yes, for announcements | Brevo → SMTP & API → API keys. Server only. |
 | `BREVO_SENDER_EMAIL` | yes | Must be a verified Brevo sender. |
-| `BREVO_SENDER_NAME` | no | Defaults to `Vic Chatbot`. |
+| `BREVO_SENDER_NAME` | no | Defaults to `VICORA AI`. |
 | `BREVO_DAILY_LIMIT` | no | Defaults to 300; keeps sends inside the plan. |
 | `BACKEND_PUBLIC_URL` | yes, for unsubscribe | For example `https://vic-chatbot-56hw.onrender.com`. |
 
@@ -118,7 +118,7 @@ TOKEN="<a signed-in admin access token>"
 curl -X POST https://vic-chatbot-56hw.onrender.com/announcements/send \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"key":"november-release-notes","subject":"New in Vic","html":"<p>Hello!</p>","dry_run":true}'
+  -d '{"key":"november-release-notes","subject":"New in Vicora","html":"<p>Hello!</p>","dry_run":true}'
 ```
 
 Behaviour:
@@ -174,12 +174,12 @@ the session comes back to the same page where `checkSession()` already picks it 
 
 1. Go to <https://console.cloud.google.com/> and pick (or create) a project.
 2. **APIs & Services → OAuth consent screen**: choose *External*, fill in the app name
-   "Vic Chatbot", your support email and developer email. Add the scope
+   "VICORA AI", your support email and developer email. Add the scope
    `.../auth/userinfo.email`, `.../auth/userinfo.profile` and `openid`. Publish the app
    (or add test users while it is in testing).
 3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application**
-   - Name: `Vic Chatbot web`
+   - Name: `VICORA AI web`
    - **Authorised JavaScript origins**
      - `https://vic-chatbot-frontend.onrender.com`
      - `http://localhost:8098` (only if you test locally)

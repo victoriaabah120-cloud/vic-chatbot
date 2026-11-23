@@ -388,8 +388,8 @@ function initHero() {
         // 0.86 fills most of the frame without letting the platform crop.
         baseDistance = (subjectSphere.radius / Math.sin(limiting / 2)) * 0.86;
 
-        // On the wide desktop frame the words sit on the left, so Vic stands
-        // right of centre. When the layout stacks, Vic centres instead.
+        // On the wide desktop frame the words sit on the left, so Vicora stands
+        // right of centre. When the layout stacks, Vicora centres instead.
         const stacked = window.matchMedia("(max-width: 980px)").matches;
         const wide = !stacked && camera.aspect > 1.28;
         const halfWidth = Math.tan(horizontalFov / 2) * baseDistance;

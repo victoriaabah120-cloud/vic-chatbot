@@ -1,5 +1,5 @@
 /* ============================================================
-   VIC VOICE MODE
+   VICORA VOICE MODE
    A full-screen spoken conversation with the same backend, the
    same account and the same conversation as the text chat.
 
@@ -113,7 +113,7 @@ async function voiceApi(path, options = {}) {
         data = {};
     }
     if (!response.ok) {
-        throw new Error(data.detail || "Vic could not answer that just now.");
+        throw new Error(data.detail || "Vicora could not answer that just now.");
     }
     return data;
 }
@@ -460,7 +460,7 @@ function ensureRecognition() {
 
     recognition.onend = () => {
         voiceState.listening = false;
-        // Continuous conversation: start again unless Vic is busy or muted.
+        // Continuous conversation: start again unless Vicora is busy or muted.
         if (
             voiceState.open &&
             !voiceState.muted &&
@@ -574,7 +574,7 @@ function addTurn(role, text) {
         return;
     }
     const row = vEl("div", `voice-turn voice-turn-${role === "user" ? "user" : "vic"}`);
-    row.appendChild(vEl("span", "voice-turn-who", role === "user" ? "You" : "Vic"));
+    row.appendChild(vEl("span", "voice-turn-who", role === "user" ? "You" : "Vicora"));
     row.appendChild(vEl("p", "voice-turn-text", text));
     voiceNodes.transcriptList.appendChild(row);
     voiceNodes.transcriptList.scrollTop = voiceNodes.transcriptList.scrollHeight;
@@ -584,7 +584,7 @@ async function handleUserSpeech(text) {
     if (!voiceState.open) {
         return;
     }
-    // Speaking over Vic interrupts him immediately.
+    // Speaking over Vicora interrupts him immediately.
     stopSpeaking();
     stopListening();
 
@@ -605,8 +605,8 @@ async function handleUserSpeech(text) {
         addTurn("vic", answer);
         speak(answer);
     } catch (error) {
-        setPhase("error", error.message || "Vic could not answer that just now.");
-        voiceNodes.status.textContent = error.message || "Vic could not answer that just now.";
+        setPhase("error", error.message || "Vicora could not answer that just now.");
+        voiceNodes.status.textContent = error.message || "Vicora could not answer that just now.";
         setTimeout(() => {
             if (voiceState.open && voiceState.phase === "error") {
                 setPhase("listening", "");
@@ -647,8 +647,15 @@ function buildOverlay() {
 
     const top = vEl("header", "voice-top");
     const title = vEl("div", "voice-title");
-    title.appendChild(vEl("span", "voice-title-dot"));
-    title.appendChild(vEl("span", "", "Vic Voice"));
+    const mark = document.createElement("img");
+    mark.className = "voice-title-mark";
+    mark.src = "assets/vicora-logo-96.png";
+    mark.alt = "";
+    mark.setAttribute("aria-hidden", "true");
+    mark.width = 22;
+    mark.height = 22;
+    title.appendChild(mark);
+    title.appendChild(vEl("span", "", "VICORA AI"));
     const closeButton = vEl("button", "voice-close", "End");
     closeButton.type = "button";
     closeButton.setAttribute("aria-label", "End voice conversation");
@@ -679,7 +686,7 @@ function buildOverlay() {
     speakerButton.type = "button";
     speakerButton.dataset.action = "speaker";
     speakerButton.setAttribute("aria-pressed", "false");
-    speakerButton.setAttribute("aria-label", "Mute Vic's voice");
+    speakerButton.setAttribute("aria-label", "Mute Vicora's voice");
     speakerButton.append(vIcon(["M4 9.5h3l4-3.5v12l-4-3.5H4z", "M15.5 9a4 4 0 0 1 0 6"]));
     speakerButton.appendChild(vEl("span", "voice-control-label", "Sound"));
 
@@ -720,7 +727,7 @@ function buildOverlay() {
         voiceState.speakerMuted = !voiceState.speakerMuted;
         speakerButton.setAttribute("aria-pressed", String(voiceState.speakerMuted));
         speakerButton.classList.toggle("is-active", voiceState.speakerMuted);
-        speakerButton.setAttribute("aria-label", voiceState.speakerMuted ? "Unmute Vic's voice" : "Mute Vic's voice");
+        speakerButton.setAttribute("aria-label", voiceState.speakerMuted ? "Unmute Vicora's voice" : "Mute Vicora's voice");
         if (voiceState.speakerMuted) {
             stopSpeaking();
             if (voiceState.phase === "speaking") {

@@ -1,4 +1,4 @@
--- Vic Chatbot assistant upgrade: documents, memories, shares.
+-- VICORA AI assistant upgrade: documents, memories, shares.
 -- Run once in the Supabase SQL editor. Safe to re-run.
 
 -- ---------------------------------------------------------------------------

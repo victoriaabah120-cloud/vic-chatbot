@@ -56,7 +56,7 @@ conversation_histories = {}
 @app.get("/")
 def home():
     return {
-        "message": "Vic Chatbot API is running!"
+        "message": "VICORA AI API is running!"
     }
 
 
@@ -142,7 +142,7 @@ def chat(
                 {
                     "role": "system",
                     "content": """
-You are Vic Chatbot, an AI assistant created by Victoria Abah.
+You are VICORA AI, an AI assistant created by Victoria Abah.
 
 Be helpful, friendly, clear, and conversational.
 

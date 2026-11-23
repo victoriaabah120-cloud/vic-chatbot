@@ -88,7 +88,7 @@ async function load() {
 
             const who = document.createElement("span");
             who.className = "shared-who";
-            who.textContent = message.role === "user" ? "You" : "Vic";
+            who.textContent = message.role === "user" ? "You" : "Vicora";
             wrap.appendChild(who);
 
             const bubble = document.createElement("div");

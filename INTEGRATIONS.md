@@ -1,6 +1,6 @@
 # Plugins
 
-Vic Chatbot can act on a user's connected accounts. Each provider plugs into
+VICORA AI can act on a user's connected accounts. Each provider plugs into
 the same layer, so adding the next service is one file plus one registry line.
 
 GitHub (OAuth) and Telegram (bot) are implemented. Google Calendar and
@@ -48,7 +48,7 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 
 <https://github.com/settings/developers> -> New OAuth App
 
-- Application name: Vic Chatbot
+- Application name: VICORA AI
 - Homepage URL: `https://vic-chatbot-frontend.onrender.com`
 - Authorization callback URL:
   `https://vic-chatbot-3.onrender.com/integrations/github/callback`
@@ -88,7 +88,7 @@ their own chat with a one-time code.
 | Variable | Value |
 | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | the token from BotFather |
-| `TELEGRAM_BOT_USERNAME` | the bot username, e.g. `VicChatBot` |
+| `TELEGRAM_BOT_USERNAME` | the bot username, e.g. `VICORA AI` |
 | `TELEGRAM_WEBHOOK_SECRET` | any long random string |
 
 3. Point the bot at your server, once, as an admin:

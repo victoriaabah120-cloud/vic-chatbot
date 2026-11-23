@@ -1,19 +1,19 @@
 /* =======================================================
-   Vic Chatbot landing page
+   VICORA AI landing page
    Dark violet brand, one cinematic hero, no feature grid.
    ======================================================= */
 
 :root {
     --bg: #08081A;
     --bg-soft: #0C0C22;
-    --surface: #12122B;
-    --border: #2A2A55;
-    --accent: #8B5CF6;
+    --surface: #0D1730;
+    --border: #1E2E52;
+    --accent: #2E7BFF;
     --accent-hover: #A78BFA;
     --lavender: #E9D5FF;
-    --gradient: linear-gradient(135deg, #C026D3, #7C3AED);
+    --gradient: linear-gradient(135deg, #6D4AF0, #4F46E5);
     --text: #FFFFFF;
-    --text-soft: #A5A5C8;
+    --text-soft: #9DB0D0;
     --text-dim: #8C8CB4;
     --shell: 1240px;
 }
@@ -33,7 +33,7 @@ body.site {
     background:
         radial-gradient(120% 78% at 78% -8%, rgba(139, 92, 246, 0.22), transparent 60%),
         radial-gradient(90% 60% at 6% 4%, rgba(192, 38, 211, 0.14), transparent 62%),
-        linear-gradient(180deg, #0A0A1F 0%, #08081A 42%, #070715 100%);
+        linear-gradient(180deg, #060B1C 0%, #08081A 42%, #070715 100%);
     color: var(--text);
     font-family: "Inter", system-ui, -apple-system, sans-serif;
     line-height: 1.6;
@@ -226,7 +226,7 @@ a {
 
 .btn-primary {
     position: relative;
-    background: linear-gradient(135deg, #C026D3 0%, #8B5CF6 52%, #7C3AED 100%);
+    background: linear-gradient(135deg, #6D4AF0 0%, #2E7BFF 52%, #4F46E5 100%);
     box-shadow:
         0 14px 34px rgba(139, 92, 246, 0.42),
         inset 0 1px 0 rgba(255, 255, 255, 0.22);
@@ -571,7 +571,7 @@ button:focus-visible {
 
 .voice-line-alt {
     color: transparent;
-    background: linear-gradient(100deg, #C084FC, #8B5CF6 46%, #E9D5FF);
+    background: linear-gradient(100deg, #C084FC, #2E7BFF 46%, #E9D5FF);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -598,7 +598,7 @@ button:focus-visible {
     border-radius: 26px;
     background:
         radial-gradient(90% 130% at 82% 0%, rgba(168, 85, 247, 0.26), transparent 62%),
-        linear-gradient(160deg, #12122B 0%, #0D0D22 100%);
+        linear-gradient(160deg, #0D1730 0%, #0D0D22 100%);
     box-shadow: 0 30px 90px rgba(4, 4, 18, 0.6);
     overflow: hidden;
 }
@@ -772,7 +772,7 @@ button:focus-visible {
             transparent 0%,
             rgba(7, 7, 22, 0.1) 58%,
             rgba(7, 7, 22, 0.82) 88%,
-            #0A0A1F 100%
+            #060B1C 100%
         );
     }
 

@@ -1,4 +1,4 @@
-"""Plugin layer: lets Vic Chatbot act on connected third-party accounts."""
+"""Plugin layer: lets VICORA AI act on connected third-party accounts."""
 
 from .router import router
 

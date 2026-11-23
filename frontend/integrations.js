@@ -215,7 +215,7 @@ async function toggleIntegration(integration) {
 
 async function disconnect(integration) {
     const confirmed = window.confirm(
-        `Disconnect ${integration.name}? Vic Chatbot will lose access straight away.`
+        `Disconnect ${integration.name}? VICORA AI will lose access straight away.`
     );
 
     if (!confirmed) {

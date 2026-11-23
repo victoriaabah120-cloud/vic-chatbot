@@ -1,4 +1,4 @@
--- Vic Chatbot plugin layer: storage for connected accounts.
+-- VICORA AI plugin layer: storage for connected accounts.
 -- Run this once in the Supabase SQL editor.
 
 create table if not exists public.integrations (

@@ -51,7 +51,7 @@ def _supabase():
 
 def _sender() -> dict:
     email = os.getenv("BREVO_SENDER_EMAIL")
-    name = os.getenv("BREVO_SENDER_NAME", "Vic Chatbot")
+    name = os.getenv("BREVO_SENDER_NAME", "VICORA AI")
     if not email:
         raise HTTPException(
             status_code=500,
@@ -204,7 +204,7 @@ def _html_with_footer(html: str, unsubscribe_url: str) -> str:
         return html
     footer = (
         '<p style="margin:32px 0 0;font-size:12px;line-height:1.6;color:#7A7398;">'
-        'You are receiving this because you have a Vic Chatbot account. '
+        'You are receiving this because you have a VICORA AI account. '
         f'<a href="{escape(unsubscribe_url)}" style="color:#7C3AED;">'
         "Turn off announcement emails</a>."
         "</p>"
@@ -383,7 +383,7 @@ _PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} | Vic Chatbot</title>
+<title>{title} | VICORA AI</title>
 <style>
     body {{ margin:0; min-height:100vh; display:grid; place-items:center;
         background: radial-gradient(80% 60% at 50% 0%, #2A1B4D, #0A0A1F 70%);
@@ -402,7 +402,7 @@ _PAGE = """<!DOCTYPE html>
 <main>
     <h1>{title}</h1>
     <p>{message}</p>
-    <a href="{home}">Back to Vic Chatbot</a>
+    <a href="{home}">Back to VICORA AI</a>
 </main>
 </body>
 </html>"""
@@ -439,7 +439,7 @@ def unsubscribe(token: str = ""):
         return HTMLResponse(
             _PAGE.format(
                 title="That link has expired",
-                message="We could not match this link to an account. You can still manage email from your profile inside Vic Chatbot.",
+                message="We could not match this link to an account. You can still manage email from your profile inside VICORA AI.",
                 home=home,
             ),
             status_code=404,

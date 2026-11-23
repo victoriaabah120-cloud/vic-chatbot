@@ -6,7 +6,7 @@ const PROFILE_TABLE = "profiles";
 const PREFERENCES_TABLE = "email_preferences";
 
 const GREETING_DEFAULT = "Hello! 👋";
-const SUBTITLE_DEFAULT = "Turn your curiosity into clarity. Start a conversation with Vic.";
+const SUBTITLE_DEFAULT = "Turn your curiosity into clarity. Start a conversation with Vicora.";
 
 const state = {
     session: null,
@@ -140,7 +140,7 @@ function avatarNode(element) {
 }
 
 function render() {
-    const name = state.name || "Vic member";
+    const name = state.name || "Vicora member";
     const initials = state.initials || initialsFor(name);
 
     const firstName = state.name ? state.name.split(" ")[0] : "";

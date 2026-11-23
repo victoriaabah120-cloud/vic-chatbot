@@ -55,26 +55,26 @@ def _safe_name(title: str) -> str:
 def to_text(title: str, messages: list[dict]) -> str:
     lines = [title, "=" * len(title), ""]
     for message in messages:
-        who = "You" if message.get("role") == "user" else "Vic"
+        who = "You" if message.get("role") == "user" else "Vicora"
         stamp = _stamp(message.get("created_at"))
         lines.append(f"{who}{' — ' + stamp if stamp else ''}")
         lines.append(message.get("content") or "")
         lines.append("")
-    lines.append("Exported from Vic Chatbot.")
+    lines.append("Exported from VICORA AI.")
     return "\n".join(lines)
 
 
 def to_markdown(title: str, messages: list[dict]) -> str:
     lines = [f"# {title}", ""]
     for message in messages:
-        who = "You" if message.get("role") == "user" else "Vic"
+        who = "You" if message.get("role") == "user" else "Vicora"
         stamp = _stamp(message.get("created_at"))
         lines.append(f"### {who}{' — ' + stamp if stamp else ''}")
         lines.append("")
         lines.append(message.get("content") or "")
         lines.append("")
     lines.append("---")
-    lines.append("_Exported from Vic Chatbot._")
+    lines.append("_Exported from VICORA AI._")
     return "\n".join(lines)
 
 
@@ -106,11 +106,11 @@ def to_pdf(title: str, messages: list[dict]) -> bytes:
         "VicTitle", parent=styles["Title"], fontSize=18, leading=22, spaceAfter=4
     )
     story = [Paragraph(_escape(title), heading), Spacer(1, 6)]
-    story.append(Paragraph("Exported from Vic Chatbot", speaker))
+    story.append(Paragraph("Exported from VICORA AI", speaker))
     story.append(Spacer(1, 10))
 
     for message in messages:
-        who = "You" if message.get("role") == "user" else "Vic"
+        who = "You" if message.get("role") == "user" else "Vicora"
         stamp = _stamp(message.get("created_at"))
         story.append(Paragraph(f"{who}{' — ' + stamp if stamp else ''}", speaker))
         for block in (message.get("content") or "").split("\n"):

@@ -1,4 +1,4 @@
--- Vic Chatbot: Google sign-in support for profiles.
+-- VICORA AI: Google sign-in support for profiles.
 -- Run this after profiles_and_announcements.sql. Safe to run more than once.
 --
 -- Two additions:
