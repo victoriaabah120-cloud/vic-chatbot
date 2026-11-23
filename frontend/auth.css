@@ -113,7 +113,7 @@ body.auth-page::before {
 .login-welcome-banner {
     padding: 18px 20px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #6D4AF0 0%, #2E7BFF 55%, #4F46E5 100%);
+    background: linear-gradient(135deg, #C026D3 0%, #8B5CF6 55%, #7C3AED 100%);
     box-shadow: 0 14px 34px rgba(139, 92, 246, 0.32);
     text-align: center;
 }
@@ -144,7 +144,7 @@ body.auth-page::before {
     height: 2px;
     margin-top: 12px;
     border-radius: 2px;
-    background: linear-gradient(90deg, #6D4AF0, #4F46E5);
+    background: linear-gradient(90deg, #C026D3, #7C3AED);
     content: "";
 }
 
@@ -185,12 +185,12 @@ body.auth-page::before {
 
 #signUpButton {
     border: 0;
-    background: linear-gradient(135deg, #6D4AF0 0%, #2E7BFF 55%, #4F46E5 100%);
+    background: linear-gradient(135deg, #C026D3 0%, #8B5CF6 55%, #7C3AED 100%);
     box-shadow: 0 12px 28px rgba(139, 92, 246, 0.34);
 }
 
 #signUpButton:hover:not(:disabled) {
-    background: linear-gradient(135deg, #D02BE3 0%, #9B6BFF 55%, #2E7BFF 100%);
+    background: linear-gradient(135deg, #D02BE3 0%, #9B6BFF 55%, #8B5CF6 100%);
     box-shadow: 0 16px 34px rgba(139, 92, 246, 0.44);
     transform: translateY(-1px);
 }

@@ -22,7 +22,27 @@ from app.websearch import router as search_router
 from app.integrations.agent import run_chat_with_plugins
 from app.integrations.router import router as integrations_router
 
+CHAT_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+CHAT_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.3-70b-versatile")
+
 app = FastAPI()
+
+
+def save_message(supabase, payload, optional=("attachments", "sources")):
+    """Store a message, tolerating a database without the newer columns.
+
+    The assistant upgrade added message metadata (attachments, sources). If the
+    matching SQL has not been run yet, PostgREST rejects the insert and the whole
+    reply would fail, so the message is retried without those columns instead.
+    """
+    try:
+        supabase.table("messages").insert(payload).execute()
+        return
+    except Exception as error:  # noqa: BLE001
+        print("MESSAGE INSERT ERROR:", repr(error))
+    trimmed = {key: value for key, value in payload.items() if key not in optional}
+    supabase.table("messages").insert(trimmed).execute()
+
 
 app.include_router(integrations_router)
 app.include_router(announcements_router)
@@ -627,11 +647,11 @@ def chat(
         search_results = websearch.search(request.message)
         searched = bool(search_results)
 
-    supabase.table("messages").insert({
+    save_message(supabase, {
         **user_message,
         "conversation_id": request.conversation_id,
         "attachments": attachment_summaries or None,
-    }).execute()
+    })
     history.append(user_message)
 
     # Anything the person explicitly asked Vicora to remember is stored now.
@@ -642,15 +662,7 @@ def chat(
     except Exception as error:
         print("MEMORY SAVE ERROR:", repr(error))
 
-    try:
-        answer = run_chat_with_plugins(
-            client=client,
-            model="openai/gpt-oss-120b",
-            temperature=0.5,
-            reasoning_effort="low",
-            supabase=supabase,
-            user_id=user.id,
-            messages=[
+    chat_messages = [
                 {
                     "role": "system",
                     "content": """
@@ -729,25 +741,46 @@ Plain-text and accuracy requirements:
                     else []
                 ),
                 *history[-12:]
-            ]
-        )
+    ]
 
-    except Exception as error:
-        print("CHAT ERROR:", repr(error))
+    # The primary model is tried first; if the provider rejects it (retired,
+    # renamed or rate limited) a backup model answers so chat keeps working.
+    answer = ""
+    last_error = None
+    for model_name in [CHAT_MODEL, CHAT_FALLBACK_MODEL]:
+        if not model_name:
+            continue
+        try:
+            answer = run_chat_with_plugins(
+                client=client,
+                model=model_name,
+                temperature=0.5,
+                reasoning_effort="low",
+                supabase=supabase,
+                user_id=user.id,
+                messages=chat_messages,
+            )
+            last_error = None
+            break
+        except Exception as error:  # noqa: BLE001
+            print(f"CHAT ERROR ({model_name}):", repr(error))
+            last_error = error
+
+    if last_error is not None:
         raise HTTPException(
             status_code=500,
             detail="Something went wrong while generating the response."
-        ) from error
+        ) from last_error
 
     assistant_message = {
         "role": "assistant",
         "content": answer
     }
-    supabase.table("messages").insert({
+    save_message(supabase, {
         **assistant_message,
         "conversation_id": request.conversation_id,
         "sources": search_results or None,
-    }).execute()
+    })
 
     # Name the conversation after its first message
     if current_title == "New conversation":

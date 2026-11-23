@@ -94,7 +94,7 @@ body.voice-open {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6D4AF0, #4F46E5);
+    background: linear-gradient(135deg, #C026D3, #7C3AED);
     box-shadow: 0 0 12px rgba(192, 38, 211, 0.8);
 }
 
@@ -207,7 +207,7 @@ body.voice-open {
 
 .voice-control.is-active {
     color: #FFFFFF;
-    border-color: #6D4AF0;
+    border-color: #C026D3;
     background: linear-gradient(135deg, rgba(192, 38, 211, 0.35), rgba(124, 58, 237, 0.35));
 }
 
@@ -322,16 +322,6 @@ body.voice-open {
     height: 22px;
     border-radius: 7px;
     object-fit: cover;
-    box-shadow: 0 0 0 1px rgba(46, 123, 255, 0.4), 0 4px 14px rgba(20, 70, 180, 0.4);
-}
-
-.voice-hint {
-    margin: -6px auto 0;
-    max-width: 34ch;
-    color: var(--text-soft);
-    font-size: 0.78rem;
-    line-height: 1.4;
-    text-align: center;
 }
 
 .voice-hint {

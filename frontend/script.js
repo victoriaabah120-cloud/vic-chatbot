@@ -1680,10 +1680,17 @@ async function sendMessage() {
 
             let friendlyMessage = "The chatbot server returned an error.";
             const isFriendly = response.status === 413 || response.status === 429;
-            if (isFriendly) {
-                try {
-                    friendlyMessage = JSON.parse(errorText).detail || friendlyMessage;
-                } catch (parseError) {
+            // Show the server's own sentence whenever it sent one, so a failure
+            // names its cause instead of a generic apology.
+            try {
+                const parsed = JSON.parse(errorText);
+                if (parsed && typeof parsed.detail === "string" && parsed.detail.length < 200) {
+                    friendlyMessage = parsed.detail;
+                } else if (isFriendly) {
+                    friendlyMessage = "Something went wrong. Please try again.";
+                }
+            } catch (parseError) {
+                if (isFriendly) {
                     friendlyMessage = "Something went wrong. Please try again.";
                 }
             }

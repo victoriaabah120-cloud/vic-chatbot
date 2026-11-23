@@ -1,13 +1,13 @@
 :root {
-    --bg: #060B1C;
-    --surface: #0D1730;
-    --border: #1E2E52;
-    --accent: #2E7BFF;
-    --gradient: linear-gradient(135deg, #3B82F6, #7C3AED);
+    --bg: #0A0A1F;
+    --surface: #12122B;
+    --border: #2A2A55;
+    --accent: #8B5CF6;
+    --gradient: linear-gradient(135deg, #C026D3, #7C3AED);
     --text: #FFFFFF;
-    --text-soft: #9DB0D0;
-    --accent-hover: #5B9BFF;
-        --accent-hover: #2563EB;
+    --text-soft: #A5A5C8;
+    --accent-hover: #A78BFA;
+        --accent-hover: #7C3AED;
     --accent-text: var(--text);
     --danger: #B42318;
         --danger: #F87171;
@@ -124,7 +124,7 @@ h3 {
 .welcome-banner {
     border-radius: 14px;
     background: var(--gradient);
-    box-shadow: 0 0 24px rgba(46, 123, 255, 0.3);
+    box-shadow: 0 0 24px rgba(139, 92, 246, 0.3);
     color: var(--text);
 }
 
@@ -304,7 +304,7 @@ input::placeholder {
     overflow-wrap: anywhere;
     border: 1px solid transparent;
     border-radius: 10px;
-    background: rgba(46, 123, 255, 0.1);
+    background: rgba(139, 92, 246, 0.1);
 }
 
 .conversation-button {
@@ -486,7 +486,7 @@ input::placeholder {
 }
 
 .chat-table th {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
 }
 
 .empty-chat-message {
@@ -516,7 +516,7 @@ input::placeholder {
     border: 1px solid var(--border);
     border-radius: 14px;
     background: var(--gradient);
-    box-shadow: 0 0 24px rgba(46, 123, 255, 0.3);
+    box-shadow: 0 0 24px rgba(139, 92, 246, 0.3);
     color: var(--text);
 }
 
@@ -609,7 +609,7 @@ input::placeholder {
 }
 
 #adminUsersTable th {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--text);
 }
 
@@ -921,7 +921,7 @@ a {
 
 .sidebar-footer button:hover:not(:disabled),
 .sidebar-footer a:hover {
-    background: rgba(46, 123, 255, 0.12);
+    background: rgba(139, 92, 246, 0.12);
     color: var(--text);
     transform: none;
 }
@@ -1051,7 +1051,7 @@ a {
 }
 
 #composerBar > button:hover:not(:disabled) {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--text);
     transform: none;
 }
@@ -1125,7 +1125,7 @@ a {
 
 #imageButton:hover:not(:disabled) {
     border-color: var(--accent);
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--text);
     transform: none;
 }
@@ -1293,7 +1293,7 @@ a {
 }
 
 #composerMenu button:hover {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
 }
 
 #composerMenu svg {
@@ -1548,7 +1548,7 @@ a {
 
 .admin-action-buttons .unban-button:hover:not(:disabled),
 .admin-action-buttons .conversations-button:hover:not(:disabled) {
-    background: rgba(46, 123, 255, 0.12);
+    background: rgba(139, 92, 246, 0.12);
 }
 
 @media (max-width: 480px) {
@@ -1607,17 +1607,17 @@ a {
     overflow: hidden;
     border-right: 1px solid var(--border);
     background:
-        radial-gradient(120% 90% at 18% 0%, rgba(109, 74, 240, 0.24), transparent 55%),
-        radial-gradient(95% 80% at 88% 100%, rgba(79, 70, 229, 0.3), transparent 62%),
-        linear-gradient(160deg, #0E0E24 0%, #060B1C 62%, #0B0B22 100%);
+        radial-gradient(120% 90% at 18% 0%, rgba(192, 38, 211, 0.24), transparent 55%),
+        radial-gradient(95% 80% at 88% 100%, rgba(124, 58, 237, 0.3), transparent 62%),
+        linear-gradient(160deg, #0E0E24 0%, #0A0A1F 62%, #0B0B22 100%);
 }
 
 .auth-promo::before {
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(46, 123, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(46, 123, 255, 0.07) 1px, transparent 1px);
+        linear-gradient(rgba(139, 92, 246, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
     background-size: 46px 46px;
     content: "";
     mask-image: radial-gradient(75% 65% at 40% 45%, rgba(0, 0, 0, 0.9), transparent 78%);
@@ -1657,7 +1657,7 @@ a.promo-brand:hover {
     height: 7px;
     border-radius: 50%;
     background: var(--accent-hover);
-    box-shadow: 0 0 0 4px rgba(46, 123, 255, 0.16), 0 0 14px rgba(167, 139, 250, 0.9);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16), 0 0 14px rgba(167, 139, 250, 0.9);
     animation: promo-dot 2.8s ease-in-out infinite;
 }
 
@@ -1679,8 +1679,8 @@ a.promo-brand:hover {
     line-height: 1.06;
     text-wrap: balance;
     text-shadow:
-        0 0 30px rgba(124, 108, 247, 0.5),
-        0 0 70px rgba(79, 70, 229, 0.3);
+        0 0 30px rgba(168, 85, 247, 0.5),
+        0 0 70px rgba(124, 58, 237, 0.3);
 }
 
 /* Secondary headline: clearly smaller than the main one, still bold and
@@ -1692,7 +1692,7 @@ a.promo-brand:hover {
     font-weight: 700;
     letter-spacing: -0.012em;
     line-height: 1.25;
-    text-shadow: 0 0 20px rgba(46, 123, 255, 0.4);
+    text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
 }
 
 /* Blinking caret that trails the typed headline. */
@@ -1703,7 +1703,7 @@ a.promo-brand:hover {
     margin-left: 4px;
     background: var(--accent-hover);
     vertical-align: -0.06em;
-    box-shadow: 0 0 12px rgba(124, 108, 247, 0.9);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.9);
     animation: promo-caret 1.05s steps(1) infinite;
 }
 
@@ -1790,17 +1790,17 @@ a.promo-brand:hover {
 .robot-stage {
     --robot-scale: 1.14;
     /* Violet / purple palette taken from the login theme itself
-       (--accent #2E7BFF, --gradient #3B82F6 -> #4F46E5) plus deeper
+       (--accent #8B5CF6, --gradient #C026D3 -> #7C3AED) plus deeper
        violet shade steps, so the robot belongs to this page. */
     --v-ink: #150A33;
     --v-deep: #2E1065;
     --v-royal: #5B21B6;
-    --v-main: #4F46E5;
-    --v-bright: #7C6CF7;
+    --v-main: #7C3AED;
+    --v-bright: #A855F7;
     --v-glow: #C084FC;
     --v-lavender: #E9D5FF;
     --v-white: #F5F3FF;
-    --v-magenta: #3B82F6;
+    --v-magenta: #C026D3;
     position: relative;
     z-index: 2;
     width: calc(240px * var(--robot-scale));
@@ -1836,7 +1836,7 @@ a.promo-brand:hover {
     margin-left: -125px;
     border-radius: 50%;
     background:
-        radial-gradient(closest-side, rgba(109, 74, 240, 0.42), rgba(79, 70, 229, 0.3) 46%, transparent 78%);
+        radial-gradient(closest-side, rgba(192, 38, 211, 0.42), rgba(124, 58, 237, 0.3) 46%, transparent 78%);
     filter: blur(9px);
     animation: robot-floor-glow 7s ease-in-out infinite alternate;
 }
@@ -1849,7 +1849,7 @@ a.promo-brand:hover {
     height: 64px;
     margin-left: -52px;
     border-radius: 44% 44% 50% 50%;
-    background: linear-gradient(180deg, rgba(124, 108, 247, 0.4), rgba(79, 70, 229, 0.16) 46%, transparent 88%);
+    background: linear-gradient(180deg, rgba(168, 85, 247, 0.4), rgba(124, 58, 237, 0.16) 46%, transparent 88%);
     filter: blur(7px);
     opacity: 0.75;
 }
@@ -1861,7 +1861,7 @@ a.promo-brand:hover {
     inset: -58px -44px -14px;
     border-radius: 50%;
     background:
-        radial-gradient(closest-side, rgba(192, 132, 252, 0.5), rgba(46, 123, 255, 0.28) 44%, rgba(79, 70, 229, 0.14) 66%, transparent 82%);
+        radial-gradient(closest-side, rgba(192, 132, 252, 0.5), rgba(139, 92, 246, 0.28) 44%, rgba(124, 58, 237, 0.14) 66%, transparent 82%);
     filter: blur(13px);
 }
 
@@ -1878,9 +1878,9 @@ a.promo-brand:hover {
     border-radius: 50%;
     box-shadow:
         0 0 26px rgba(192, 132, 252, 0.75),
-        0 0 56px rgba(46, 123, 255, 0.45),
-        0 0 90px rgba(79, 70, 229, 0.28),
-        inset 0 0 26px rgba(109, 74, 240, 0.38);
+        0 0 56px rgba(139, 92, 246, 0.45),
+        0 0 90px rgba(124, 58, 237, 0.28),
+        inset 0 0 26px rgba(192, 38, 211, 0.38);
     filter: drop-shadow(0 0 14px rgba(192, 132, 252, 0.8));
     transform: rotateX(74deg);
     animation: robot-ring 16s linear infinite;
@@ -1898,7 +1898,7 @@ a.promo-brand:hover {
 .robot-ring::after {
     position: absolute;
     inset: -6px;
-    border: 1px solid rgba(109, 74, 240, 0.3);
+    border: 1px solid rgba(192, 38, 211, 0.3);
     border-radius: 50%;
     content: "";
     filter: blur(2px);
@@ -1918,8 +1918,8 @@ a.promo-brand:hover {
     border-radius: 50%;
     box-shadow:
         0 0 24px rgba(192, 132, 252, 0.7),
-        0 0 48px rgba(46, 123, 255, 0.32),
-        inset 0 0 22px rgba(46, 123, 255, 0.45);
+        0 0 48px rgba(139, 92, 246, 0.32),
+        inset 0 0 22px rgba(139, 92, 246, 0.45);
     transform: rotateX(74deg);
     transform-origin: 50% 50%;
     animation: robot-orbit 22s linear infinite;
@@ -1939,7 +1939,7 @@ a.promo-brand:hover {
     border-radius: 50%;
     box-shadow:
         0 0 16px rgba(192, 132, 252, 0.85),
-        inset 0 0 16px rgba(46, 123, 255, 0.5);
+        inset 0 0 16px rgba(139, 92, 246, 0.5);
     transform: rotateX(74deg);
     transform-origin: 50% 50%;
     mask-image: linear-gradient(180deg, transparent 0 44%, rgba(0, 0, 0, 0.35) 52%, #000 64% 100%);
@@ -1950,7 +1950,7 @@ a.promo-brand:hover {
 .robot-orbit::before {
     position: absolute;
     inset: -3px;
-    border: 1px solid rgba(109, 74, 240, 0.3);
+    border: 1px solid rgba(192, 38, 211, 0.3);
     border-radius: 50%;
     content: "";
     filter: blur(3px);
@@ -1978,14 +1978,14 @@ a.promo-brand:hover {
             rgba(233, 213, 255, 0) 5.5% 17%,
             rgba(233, 213, 255, 0.32) 27% 30%,
             rgba(233, 213, 255, 0) 30% 50%,
-            rgba(109, 74, 240, 0.26) 66% 70%,
-            rgba(109, 74, 240, 0) 70%),
-        linear-gradient(158deg, #B776FB 0%, #2E7BFF 17%, #1D4ED8 45%, #4C1D95 72%, #2B0F5E 100%);
+            rgba(192, 38, 211, 0.26) 66% 70%,
+            rgba(192, 38, 211, 0) 70%),
+        linear-gradient(158deg, #B776FB 0%, #8B5CF6 17%, #6D28D9 45%, #4C1D95 72%, #2B0F5E 100%);
     box-shadow:
         inset 0 7px 15px rgba(245, 243, 255, 0.3),
         inset 0 -16px 26px rgba(21, 10, 51, 0.78),
         0 18px 34px rgba(21, 10, 51, 0.55),
-        0 0 30px rgba(124, 108, 247, 0.4),
+        0 0 30px rgba(168, 85, 247, 0.4),
         -7px -6px 18px rgba(216, 180, 254, 0.22);
     transform-origin: 50% 92%;
     animation: robot-head-look 9s ease-in-out infinite;
@@ -2009,7 +2009,7 @@ a.promo-brand:hover {
     margin-left: -2px;
     border-radius: 3px;
     background: linear-gradient(180deg, var(--v-bright), var(--v-royal));
-    box-shadow: 0 0 8px rgba(124, 108, 247, 0.6);
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
 }
 
 .robot-antenna::after {
@@ -2021,7 +2021,7 @@ a.promo-brand:hover {
     margin-left: -5px;
     border-radius: 50%;
     background: radial-gradient(circle at 34% 30%, var(--v-white), var(--v-glow) 55%, var(--v-main));
-    box-shadow: 0 0 14px rgba(192, 132, 252, 0.95), 0 0 26px rgba(124, 108, 247, 0.6);
+    box-shadow: 0 0 14px rgba(192, 132, 252, 0.95), 0 0 26px rgba(168, 85, 247, 0.6);
     content: "";
     animation: robot-tip 2.6s ease-in-out infinite;
 }
@@ -2035,8 +2035,8 @@ a.promo-brand:hover {
     background: linear-gradient(160deg, var(--v-bright), var(--v-royal) 58%, var(--v-deep));
     box-shadow:
         inset 0 1px 2px rgba(245, 243, 255, 0.4),
-        inset 0 0 6px rgba(109, 74, 240, 0.45),
-        0 0 10px rgba(124, 108, 247, 0.35);
+        inset 0 0 6px rgba(192, 38, 211, 0.45),
+        0 0 10px rgba(168, 85, 247, 0.35);
 }
 
 .robot-ear-left { left: -9px; }
@@ -2058,8 +2058,8 @@ a.promo-brand:hover {
     background: radial-gradient(circle at 32% 24%, #45218A, #0C0420 82%);
     box-shadow:
         inset 0 2px 7px rgba(0, 0, 0, 0.9),
-        inset 0 0 14px rgba(124, 108, 247, 0.4),
-        0 0 22px rgba(124, 108, 247, 0.45);
+        inset 0 0 14px rgba(168, 85, 247, 0.4),
+        0 0 22px rgba(168, 85, 247, 0.45);
 }
 
 .robot-visor::after {
@@ -2080,8 +2080,8 @@ a.promo-brand:hover {
     background: linear-gradient(180deg, var(--v-white), var(--v-glow) 55%, var(--v-bright));
     box-shadow:
         0 0 12px rgba(192, 132, 252, 0.95),
-        0 0 26px rgba(124, 108, 247, 0.75),
-        0 0 40px rgba(109, 74, 240, 0.35);
+        0 0 26px rgba(168, 85, 247, 0.75),
+        0 0 40px rgba(192, 38, 211, 0.35);
     animation: robot-eyes 5.4s ease-in-out infinite;
 }
 
@@ -2115,14 +2115,14 @@ a.promo-brand:hover {
             rgba(233, 213, 255, 0) 4.5% 20%,
             rgba(233, 213, 255, 0.26) 33% 37%,
             rgba(233, 213, 255, 0) 37% 58%,
-            rgba(109, 74, 240, 0.3) 74% 79%,
-            rgba(109, 74, 240, 0) 79%),
-        linear-gradient(155deg, #9A5CF8 0%, #4F46E5 32%, #5B21B6 62%, #33116B 86%, #230C4C 100%);
+            rgba(192, 38, 211, 0.3) 74% 79%,
+            rgba(192, 38, 211, 0) 79%),
+        linear-gradient(155deg, #9A5CF8 0%, #7C3AED 32%, #5B21B6 62%, #33116B 86%, #230C4C 100%);
     box-shadow:
         inset 0 8px 18px rgba(245, 243, 255, 0.26),
         inset 0 -20px 30px rgba(21, 10, 51, 0.7),
         0 22px 40px rgba(21, 10, 51, 0.5),
-        0 0 34px rgba(46, 123, 255, 0.36),
+        0 0 34px rgba(139, 92, 246, 0.36),
         -8px -6px 20px rgba(216, 180, 254, 0.2);
 }
 
@@ -2161,8 +2161,8 @@ a.promo-brand:hover {
     border-radius: 12px;
     background: linear-gradient(135deg, var(--v-magenta), var(--v-bright) 55%, var(--v-main));
     box-shadow:
-        0 0 18px rgba(109, 74, 240, 0.6),
-        0 0 34px rgba(124, 108, 247, 0.4),
+        0 0 18px rgba(192, 38, 211, 0.6),
+        0 0 34px rgba(168, 85, 247, 0.4),
         inset 0 0 12px rgba(245, 243, 255, 0.4);
     animation: robot-chest 3.8s ease-in-out infinite;
 }
@@ -2179,7 +2179,7 @@ a.promo-brand:hover {
         inset 0 2px 6px rgba(245, 243, 255, 0.35),
         inset 0 -4px 10px rgba(21, 10, 51, 0.6),
         0 6px 12px rgba(21, 10, 51, 0.45),
-        0 0 14px rgba(124, 108, 247, 0.3);
+        0 0 14px rgba(168, 85, 247, 0.3);
 }
 
 .robot-shoulder-left { left: -11px; }
@@ -2199,7 +2199,7 @@ a.promo-brand:hover {
             rgba(233, 213, 255, 0) 6% 26%,
             rgba(233, 213, 255, 0.18) 34% 40%,
             rgba(233, 213, 255, 0) 40%),
-        linear-gradient(158deg, #4F46E5 0%, #5B21B6 44%, #38136F 78%, #220B47 100%);
+        linear-gradient(158deg, #7C3AED 0%, #5B21B6 44%, #38136F 78%, #220B47 100%);
     box-shadow:
         inset 0 3px 8px rgba(245, 243, 255, 0.22),
         0 12px 22px rgba(21, 10, 51, 0.45);
@@ -2224,7 +2224,7 @@ a.promo-brand:hover {
             rgba(233, 213, 255, 0) 8% 30%,
             rgba(233, 213, 255, 0.16) 38% 44%,
             rgba(233, 213, 255, 0) 44%),
-        linear-gradient(158deg, #9A5CF8 0%, #1D4ED8 48%, #45198A 78%, #2A0F56 100%);
+        linear-gradient(158deg, #9A5CF8 0%, #6D28D9 48%, #45198A 78%, #2A0F56 100%);
     transform-origin: 50% 6%;
     animation: robot-forearm 5.6s ease-in-out infinite alternate;
 }
@@ -2238,7 +2238,7 @@ a.promo-brand:hover {
     margin-left: -12px;
     border-radius: 50%;
     background: radial-gradient(circle at 34% 28%, var(--v-glow), var(--v-main) 44%, var(--v-royal));
-    box-shadow: 0 0 12px rgba(124, 108, 247, 0.45), inset 0 1px 3px rgba(245, 243, 255, 0.4);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.45), inset 0 1px 3px rgba(245, 243, 255, 0.4);
     content: "";
 }
 
@@ -2259,7 +2259,7 @@ a.promo-brand:hover {
     border-radius: 10px 10px 12px 12px;
     background:
         linear-gradient(90deg, rgba(233, 213, 255, 0.34) 0 16%, rgba(233, 213, 255, 0) 34%),
-        linear-gradient(180deg, #1D4ED8, #4C1D95 48%, #2B0F5E 76%, #170733 100%);
+        linear-gradient(180deg, #6D28D9, #4C1D95 48%, #2B0F5E 76%, #170733 100%);
     box-shadow:
         inset 0 3px 7px rgba(245, 243, 255, 0.2),
         inset 0 -8px 14px rgba(21, 10, 51, 0.6);
@@ -2273,7 +2273,7 @@ a.promo-brand:hover {
     height: 26px;
     margin-left: -79px;
     border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(109, 74, 240, 0.55), rgba(79, 70, 229, 0.3) 58%, transparent 76%);
+    background: radial-gradient(closest-side, rgba(192, 38, 211, 0.55), rgba(124, 58, 237, 0.3) 58%, transparent 76%);
     filter: blur(6px);
     animation: robot-shadow 7s ease-in-out infinite alternate;
 }
@@ -2304,10 +2304,10 @@ a.promo-brand:hover {
             rgba(192, 132, 252, 0.26) 6deg,
             transparent 14deg,
             transparent 30deg,
-            rgba(109, 74, 240, 0.22) 37deg,
+            rgba(192, 38, 211, 0.22) 37deg,
             transparent 46deg,
             transparent 64deg,
-            rgba(46, 123, 255, 0.28) 71deg,
+            rgba(139, 92, 246, 0.28) 71deg,
             transparent 80deg,
             transparent 96deg,
             rgba(216, 180, 254, 0.2) 103deg,
@@ -2331,10 +2331,10 @@ a.promo-brand:hover {
     width: var(--p-size, 5px);
     height: var(--p-size, 5px);
     border-radius: 50%;
-    background: radial-gradient(circle, var(--v-white) 0 32%, rgba(216, 180, 254, 0.95) 62%, rgba(124, 108, 247, 0) 82%);
+    background: radial-gradient(circle, var(--v-white) 0 32%, rgba(216, 180, 254, 0.95) 62%, rgba(168, 85, 247, 0) 82%);
     box-shadow:
         0 0 10px rgba(216, 180, 254, 0.95),
-        0 0 22px rgba(124, 108, 247, 0.6);
+        0 0 22px rgba(168, 85, 247, 0.6);
     opacity: 0;
     animation: promo-particle var(--p-dur, 15s) linear infinite;
     animation-delay: var(--p-delay, 0s);
@@ -2442,7 +2442,7 @@ a.promo-brand:hover {
 }
 
 @keyframes robot-chest {
-    0%, 100% { opacity: 0.72; box-shadow: 0 0 14px rgba(46, 123, 255, 0.4); }
+    0%, 100% { opacity: 0.72; box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
     50% { opacity: 1; box-shadow: 0 0 24px rgba(167, 139, 250, 0.8); }
 }
 
@@ -2906,8 +2906,8 @@ a.promo-brand:hover {
 }
 
 #composerBar:focus-within {
-    border-color: rgba(46, 123, 255, 0.55);
-    box-shadow: 0 0 0 3px rgba(46, 123, 255, 0.16);
+    border-color: rgba(139, 92, 246, 0.55);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.16);
 }
 
 #messageInput {
@@ -3009,16 +3009,16 @@ body.chat-active {
 }
 
 :root[data-theme="light"] {
-    --bg: #F2F6FE;
+    --bg: #F7F5FF;
     --surface: #FFFFFF;
-    --border: #D6E2F7;
-    --accent: #1D4ED8;
-    --accent-hover: #2563EB;
-    --gradient: linear-gradient(135deg, #3B82F6, #7C3AED);
-    --text: #0B1B36;
-    --text-soft: #42557A;
+    --border: #E3DCF6;
+    --accent: #7C3AED;
+    --accent-hover: #6D28D9;
+    --gradient: linear-gradient(135deg, #C026D3, #7C3AED);
+    --text: #1B1533;
+    --text-soft: #5B5379;
     --surface-border: var(--border);
-    --shadow: 0 18px 44px rgba(13, 35, 74, 0.12);
+    --shadow: 0 18px 44px rgba(58, 30, 120, 0.12);
     --white: #FFFFFF;
     --bg-dark: var(--bg);
     --muted-text: var(--text-soft);
@@ -3045,7 +3045,7 @@ body.chat-active {
 }
 
 :root[data-theme="light"] .welcome-banner {
-    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.22);
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.22);
 }
 
 :root[data-theme="light"] #composerBar {
@@ -3054,11 +3054,11 @@ body.chat-active {
 }
 
 :root[data-theme="light"] #conversationList li {
-    background: rgba(79, 70, 229, 0.07);
+    background: rgba(124, 58, 237, 0.07);
 }
 
 :root[data-theme="light"] #conversationList li:hover {
-    background: rgba(79, 70, 229, 0.12);
+    background: rgba(124, 58, 237, 0.12);
 }
 
 :root[data-theme="light"] .chat-image-card,
@@ -3079,9 +3079,9 @@ body.chat-active {
     width: 46px;
     height: 46px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #2563EB, #2E7BFF 48%, #3B82F6);
+    background: linear-gradient(135deg, #6366F1, #8B5CF6 48%, #C026D3);
     box-shadow:
-        0 8px 20px rgba(79, 70, 229, 0.35),
+        0 8px 20px rgba(124, 58, 237, 0.35),
         inset 0 1px 0 rgba(255, 255, 255, 0.28);
     color: #FFFFFF;
     font-size: 0.95rem;
@@ -3111,8 +3111,8 @@ body.chat-active {
     border-radius: 16px;
     background: linear-gradient(
         160deg,
-        rgba(46, 123, 255, 0.14),
-        rgba(109, 74, 240, 0.06)
+        rgba(139, 92, 246, 0.14),
+        rgba(192, 38, 211, 0.06)
     );
 }
 
@@ -3168,8 +3168,8 @@ body.chat-active {
 }
 
 .profile-badge[data-role="admin"] {
-    border-color: rgba(109, 74, 240, 0.5);
-    background: rgba(109, 74, 240, 0.18);
+    border-color: rgba(192, 38, 211, 0.5);
+    background: rgba(192, 38, 211, 0.18);
     color: #F5D0FE;
 }
 
@@ -3180,8 +3180,8 @@ body.chat-active {
 }
 
 :root[data-theme="light"] .profile-badge[data-role="admin"] {
-    border-color: rgba(109, 74, 240, 0.3);
-    background: rgba(109, 74, 240, 0.1);
+    border-color: rgba(192, 38, 211, 0.3);
+    background: rgba(192, 38, 211, 0.1);
     color: #A21CAF;
 }
 
@@ -3212,7 +3212,7 @@ body.chat-active {
 
 .icon-button:hover {
     border-color: var(--border);
-    background: rgba(46, 123, 255, 0.14);
+    background: rgba(139, 92, 246, 0.14);
     color: var(--text);
 }
 
@@ -3349,8 +3349,8 @@ body.chat-active {
 }
 
 .theme-toggle:hover {
-    border-color: rgba(46, 123, 255, 0.55);
-    background: rgba(46, 123, 255, 0.14);
+    border-color: rgba(139, 92, 246, 0.55);
+    background: rgba(139, 92, 246, 0.14);
     color: var(--text);
 }
 
@@ -3485,7 +3485,7 @@ body.chat-active {
 
 .google-button:hover:not(:disabled) {
     border-color: var(--accent);
-    box-shadow: 0 10px 26px rgba(79, 70, 229, 0.22);
+    box-shadow: 0 10px 26px rgba(124, 58, 237, 0.22);
     transform: translateY(-1px);
 }
 
@@ -3526,7 +3526,7 @@ body.chat-active {
 }
 
 :root[data-theme="light"] .google-button {
-    background: #F2F6FE;
+    background: #F7F5FF;
 }
 
 :root[data-theme="light"] .google-button:hover:not(:disabled) {
@@ -3661,8 +3661,8 @@ body.chat-active {
     border-radius: 16px;
     background: linear-gradient(
         160deg,
-        rgba(46, 123, 255, 0.16),
-        rgba(109, 74, 240, 0.06)
+        rgba(139, 92, 246, 0.16),
+        rgba(192, 38, 211, 0.06)
     );
 }
 
@@ -3697,13 +3697,13 @@ body.chat-active {
 :root[data-theme="light"] .welcome-profile-card {
     background: linear-gradient(
         160deg,
-        rgba(79, 70, 229, 0.12),
-        rgba(109, 74, 240, 0.05)
+        rgba(124, 58, 237, 0.12),
+        rgba(192, 38, 211, 0.05)
     );
 }
 
 :root[data-theme="light"] .welcome-profile-card .welcome-eyebrow {
-    color: #1D4ED8;
+    color: #6D28D9;
 }
 
 @media (max-width: 760px) {
@@ -3927,7 +3927,7 @@ body.chat-active {
     flex: 0 0 auto;
     overflow: hidden;
     border-radius: 8px;
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--accent);
 }
 
@@ -3966,7 +3966,7 @@ body.chat-active {
     margin-top: 3px;
     overflow: hidden;
     border-radius: 999px;
-    background: rgba(46, 123, 255, 0.18);
+    background: rgba(139, 92, 246, 0.18);
 }
 
 .attachment-progress span {
@@ -3991,7 +3991,7 @@ body.chat-active {
 }
 
 .attachment-remove:hover {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--text);
 }
 
@@ -4018,7 +4018,7 @@ body.chat-active {
 
 #composerBar.is-dragging {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(46, 123, 255, 0.28);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.28);
 }
 
 .composer-pill {
@@ -4109,7 +4109,7 @@ body.chat-active {
     padding: 7px 10px;
     border: 1px solid var(--border);
     border-radius: 10px;
-    background: rgba(46, 123, 255, 0.07);
+    background: rgba(139, 92, 246, 0.07);
     color: var(--text);
     font-size: 0.8rem;
     text-decoration: none;
@@ -4161,7 +4161,7 @@ body.chat-active {
 }
 
 .sidebar-action:hover {
-    background: rgba(46, 123, 255, 0.14);
+    background: rgba(139, 92, 246, 0.14);
     color: var(--text);
 }
 
@@ -4208,7 +4208,7 @@ body.chat-active {
 }
 
 .assistant-dialog-close:hover {
-    background: rgba(46, 123, 255, 0.16);
+    background: rgba(139, 92, 246, 0.16);
     color: var(--text);
 }
 
@@ -4275,7 +4275,7 @@ body.chat-active {
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: rgba(46, 123, 255, 0.07);
+    background: rgba(139, 92, 246, 0.07);
 }
 
 .memory-text p {
@@ -4377,37 +4377,17 @@ body.chat-active {
     }
 }
 
-
-/* ============================================================
-   BRAND MARK
-   The official VICORA AI symbol, used in headers, the auth card
-   and the voice screen. Original artwork, shown as a rounded tile.
-   ============================================================ */
-
+/* VICORA AI logo mark, sized to the old brand dot */
 .brand-mark {
     width: 28px;
     height: 28px;
-    flex: 0 0 auto;
-    border-radius: 9px;
+    border-radius: 8px;
     object-fit: cover;
-    box-shadow:
-        0 0 0 1px rgba(46, 123, 255, 0.35),
-        0 6px 18px rgba(20, 70, 180, 0.35);
-    vertical-align: middle;
+    display: block;
+    flex: none;
 }
 
-.auth-brand .brand-mark,
-.brand .brand-mark {
-    width: 28px;
-    height: 28px;
-}
-
-@media (max-width: 600px) {
-    .brand-mark,
-    .auth-brand .brand-mark,
-    .brand .brand-mark {
-        width: 24px;
-        height: 24px;
-        border-radius: 8px;
-    }
+.auth-brand .brand-mark {
+    width: 26px;
+    height: 26px;
 }
