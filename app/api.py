@@ -17,6 +17,7 @@ from app.documents import router as documents_router
 from app.exports import router as exports_router
 from app.memory import router as memory_router
 from app.shares import router as shares_router
+from app.voice import router as voice_router
 from app.websearch import router as search_router
 from app.integrations.agent import run_chat_with_plugins
 from app.integrations.router import router as integrations_router
@@ -30,6 +31,7 @@ app.include_router(memory_router)
 app.include_router(search_router)
 app.include_router(exports_router)
 app.include_router(shares_router)
+app.include_router(voice_router)
 
 app.add_middleware(
     CORSMiddleware,

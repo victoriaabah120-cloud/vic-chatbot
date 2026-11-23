@@ -46,7 +46,18 @@ const voiceState = {
     rafId: 0,
     startedAt: 0,
     speakingKick: 0,
-    errorText: ""
+    errorText: "",
+    engine: "speech",
+    starting: false,
+    restartTimer: null,
+    startWatchdog: null,
+    speakWatchdog: null,
+    hearingProblems: 0,
+    recorder: null,
+    recording: false,
+    recorderStarting: false,
+    vadRaf: 0,
+    hintText: ""
 };
 
 let voiceNodes = null;
@@ -388,16 +399,8 @@ setInterval(() => {
 }, 90);
 
 /* ------------------------------------------------------------------ */
-/* speech in                                                           */
+/* phase painting                                                      */
 /* ------------------------------------------------------------------ */
-
-function setPhase(phase, message) {
-    voiceState.phase = phase;
-    if (message !== undefined) {
-        voiceState.errorText = message;
-    }
-    paintPhase();
-}
 
 function paintPhase() {
     if (!voiceNodes) {
@@ -411,6 +414,110 @@ function paintPhase() {
     voiceNodes.status.setAttribute("aria-label", label);
 }
 
+function setPhase(phase, errorText = "") {
+    voiceState.phase = phase;
+    voiceState.errorText = phase === "error" ? (errorText || "Something went wrong.") : "";
+    paintPhase();
+}
+
+/* ------------------------------------------------------------------ */
+/* speech in                                                           */
+/*                                                                     */
+/* Two engines, chosen automatically. The browser's own recognition    */
+/* gives live words when it works; when it is missing, blocked, or     */
+/* silent for too long, Voice Mode records a clip and the server       */
+/* transcribes it with Whisper. Either way the text lands in the same  */
+/* handleUserSpeech(), so a turn behaves identically.                  */
+/* ------------------------------------------------------------------ */
+
+const RESTART_DELAY = 350;
+const HEARING_HINT = "Vicora can't hear you yet. Tap the circle to try again.";
+const SPEAK_WATCHDOG_MS = 25000;
+
+function voiceLog(...args) {
+    if (window.__VICORA_VOICE_DEBUG__ === false) {
+        return;
+    }
+    try {
+        console.info("[voice]", ...args);
+    } catch (error) {
+        /* logging must never break a turn */
+    }
+}
+
+function clearTimer(name) {
+    if (voiceState[name]) {
+        clearTimeout(voiceState[name]);
+        voiceState[name] = null;
+    }
+}
+
+function showHint(text) {
+    voiceState.hintText = text || "";
+    if (!voiceNodes || !voiceNodes.hint) {
+        return;
+    }
+    voiceNodes.hint.textContent = voiceState.hintText;
+    voiceNodes.hint.hidden = !voiceState.hintText;
+}
+
+function scheduleRestart(delay = RESTART_DELAY) {
+    clearTimer("restartTimer");
+    voiceState.restartTimer = setTimeout(() => {
+        voiceState.restartTimer = null;
+        if (
+            voiceState.open &&
+            !voiceState.muted &&
+            voiceState.phase === "listening" &&
+            !voiceState.listening &&
+            !voiceState.recording
+        ) {
+            startListening();
+        }
+    }, delay);
+}
+
+function switchEngine(next, message) {
+    if (voiceState.engine === next) {
+        return;
+    }
+    voiceLog("engine ->", next);
+    voiceState.engine = next;
+    voiceState.hearingProblems = 0;
+    try {
+        localStorage.setItem("vicora.voiceEngine", next);
+    } catch (error) {
+        /* private mode */
+    }
+    stopListening();
+    showHint(message || "");
+    if (voiceState.open && voiceState.phase === "listening") {
+        setTimeout(() => {
+            if (voiceState.open && voiceState.phase === "listening") {
+                startListening();
+            }
+        }, 320);
+    }
+}
+
+function noteHearingProblem() {
+    voiceState.hearingProblems += 1;
+    voiceLog("nothing heard yet", voiceState.hearingProblems, "engine", voiceState.engine);
+
+    if (voiceState.engine === "speech" && voiceState.hearingProblems >= 2) {
+        switchEngine(
+            "recorder",
+            "Built-in recognition is not picking you up, so Vicora is transcribing your voice on the server instead."
+        );
+        return;
+    }
+
+    showHint(HEARING_HINT);
+    if (voiceState.open && voiceState.phase === "listening") {
+        scheduleRestart(600);
+    }
+}
+
 function ensureRecognition() {
     if (!SpeechRecognitionImpl) {
         return null;
@@ -418,10 +525,28 @@ function ensureRecognition() {
     if (voiceState.recognition) {
         return voiceState.recognition;
     }
+
     const recognition = new SpeechRecognitionImpl();
     recognition.lang = "en-US";
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        voiceState.starting = false;
+        voiceState.listening = true;
+        clearTimer("startWatchdog");
+        showHint("");
+        voiceLog("recognition started");
+    };
+
+    recognition.onaudiostart = () => {
+        voiceLog("microphone audio is flowing");
+    };
+
+    recognition.onspeechstart = () => {
+        showHint("");
+    };
 
     recognition.onresult = (event) => {
         let finalText = "";
@@ -438,35 +563,56 @@ function ensureRecognition() {
             voiceNodes.heard.textContent = interim.trim();
         }
         if (finalText.trim()) {
+            voiceState.hearingProblems = 0;
+            showHint("");
             voiceNodes.heard.textContent = "";
+            voiceLog("heard:", finalText.trim());
             handleUserSpeech(finalText.trim());
         }
     };
 
     recognition.onerror = (event) => {
-        if (event.error === "no-speech" || event.error === "aborted") {
+        const code = event.error || "unknown";
+        voiceLog("recognition error:", code);
+        voiceState.listening = false;
+        voiceState.starting = false;
+        clearTimer("startWatchdog");
+
+        if (code === "no-speech" || code === "aborted") {
+            scheduleRestart();
             return;
         }
-        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-            setPhase("error", "Microphone permission is blocked. Allow it in your browser.");
+
+        if (code === "not-allowed" || code === "service-not-allowed") {
+            setPhase("error", "Microphone permission is blocked. Allow it in your browser, then tap the circle.");
             return;
         }
-        if (event.error === "network") {
-            setPhase("error", "Speech recognition needs a connection.");
+
+        if (code === "audio-capture") {
+            setPhase("error", "No microphone was found. Check that one is connected.");
             return;
         }
-        setPhase("error", "I could not hear that. Try again.");
+
+        if (code === "network") {
+            switchEngine(
+                "recorder",
+                "The browser's speech service is unreachable, so Vicora is transcribing on the server instead."
+            );
+            return;
+        }
+
+        setPhase("error", "Vicora could not hear that. Tap the circle to try again.");
     };
 
     recognition.onend = () => {
         voiceState.listening = false;
-        // Continuous conversation: start again unless Vicora is busy or muted.
-        if (
-            voiceState.open &&
-            !voiceState.muted &&
-            voiceState.phase === "listening"
-        ) {
-            startListening();
+        voiceState.starting = false;
+        voiceLog("recognition ended, phase:", voiceState.phase);
+        // Chrome throws if start() runs inside onend, so the restart is
+        // always deferred; the guard above keeps it from looping while
+        // Vicora is thinking or speaking.
+        if (voiceState.open && !voiceState.muted && voiceState.phase === "listening") {
+            scheduleRestart();
         }
     };
 
@@ -475,25 +621,67 @@ function ensureRecognition() {
 }
 
 function startListening() {
+    if (!voiceState.open || voiceState.muted || voiceState.phase !== "listening") {
+        return;
+    }
+
+    if (voiceState.engine === "recorder") {
+        startRecorder();
+        return;
+    }
+
     const recognition = ensureRecognition();
     if (!recognition) {
-        setPhase("error", "Voice mode needs Chrome, Edge or Safari.");
+        switchEngine(
+            "recorder",
+            "This browser has no built-in speech recognition, so Vicora records and transcribes your voice instead."
+        );
         return;
     }
-    if (voiceState.muted || voiceState.listening) {
+
+    if (voiceState.listening || voiceState.starting) {
         return;
     }
+
+    voiceState.starting = true;
     try {
         recognition.start();
-        voiceState.listening = true;
-        setPhase("listening", "");
     } catch (error) {
-        // start() throws if it is already running; that is fine.
-        voiceState.listening = true;
+        voiceState.starting = false;
+        voiceLog("start threw:", error && error.name);
+        // Chrome throws when the previous session has not finished closing, so
+        // one quiet retry is normal. A run of failures means the engine cannot
+        // run here and the recorder takes over instead of retrying forever.
+        voiceState.hearingProblems += 1;
+        if (voiceState.hearingProblems >= 2) {
+            noteHearingProblem();
+            return;
+        }
+        scheduleRestart(500);
+        return;
     }
+
+    clearTimer("startWatchdog");
+    voiceState.startWatchdog = setTimeout(() => {
+        voiceState.startWatchdog = null;
+        if (
+            voiceState.open &&
+            voiceState.phase === "listening" &&
+            !voiceState.listening &&
+            !voiceState.recording
+        ) {
+            noteHearingProblem();
+        }
+    }, 9000);
 }
 
 function stopListening() {
+    clearTimer("startWatchdog");
+    clearTimer("restartTimer");
+    if (voiceState.engine === "recorder") {
+        stopRecorder();
+        return;
+    }
     if (voiceState.recognition && voiceState.listening) {
         try {
             voiceState.recognition.stop();
@@ -502,37 +690,293 @@ function stopListening() {
         }
     }
     voiceState.listening = false;
+    voiceState.starting = false;
+}
+
+/* ------------------------------------------------------------------ */
+/* recorder engine                                                     */
+/* ------------------------------------------------------------------ */
+
+function recorderMime() {
+    if (!window.MediaRecorder) {
+        return "";
+    }
+    const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+    for (const type of options) {
+        if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) {
+            return type;
+        }
+    }
+    return "";
+}
+
+async function ensureStream() {
+    if (voiceState.stream && voiceState.stream.getAudioTracks().some((track) => track.readyState === "live")) {
+        return voiceState.stream;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("This browser cannot reach a microphone.");
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    voiceState.stream = stream;
+    return stream;
+}
+
+async function startRecorder() {
+    if (voiceState.recording || voiceState.recorderStarting || !voiceState.open) {
+        return;
+    }
+    if (!window.MediaRecorder) {
+        setPhase("error", "Recording is not supported in this browser.");
+        return;
+    }
+
+    voiceState.recorderStarting = true;
+    try {
+        const stream = await ensureStream();
+        if (!voiceState.open || voiceState.phase !== "listening") {
+            voiceState.recorderStarting = false;
+            return;
+        }
+        const mime = recorderMime();
+        const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        const chunks = [];
+
+        recorder.ondataavailable = (event) => {
+            if (event.data && event.data.size) {
+                chunks.push(event.data);
+            }
+        };
+        recorder.onstop = () => {
+            voiceState.recording = false;
+            voiceState.recorder = null;
+            finishRecording(chunks, recorder.mimeType || mime || "audio/webm");
+        };
+
+        recorder.start();
+        voiceState.recorder = recorder;
+        voiceState.recording = true;
+        voiceState.recorderStarting = false;
+        showHint("");
+        voiceLog("recording started");
+        watchForSilence();
+    } catch (error) {
+        voiceState.recorderStarting = false;
+        voiceLog("recorder failed:", error && error.name);
+        const name = error && error.name;
+        if (name === "NotAllowedError" || name === "SecurityError") {
+            setPhase("error", "Microphone permission is blocked. Allow it in your browser, then tap the circle.");
+        } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+            setPhase("error", "No microphone was found. Check that one is connected.");
+        } else {
+            setPhase("error", "Vicora could not start recording. Tap the circle to try again.");
+        }
+    }
+}
+
+function stopRecorder() {
+    cancelAnimationFrame(voiceState.vadRaf);
+    voiceState.vadRaf = 0;
+    if (voiceState.recorder && voiceState.recording) {
+        try {
+            voiceState.recorder.stop();
+        } catch (error) {
+            /* already stopped */
+        }
+    }
+    voiceState.recording = false;
+}
+
+function watchForSilence() {
+    const analyser = voiceState.analyser;
+    if (!analyser || !voiceState.frequencies) {
+        // No meter: keep the clip short and predictable.
+        setTimeout(() => {
+            if (voiceState.recording) {
+                stopRecorder();
+            }
+        }, 7000);
+        return;
+    }
+
+    let spoke = false;
+    let quietSince = 0;
+    const started = performance.now();
+
+    const tick = () => {
+        if (!voiceState.recording) {
+            return;
+        }
+        analyser.getByteFrequencyData(voiceState.frequencies);
+        let sum = 0;
+        for (let i = 0; i < voiceState.frequencies.length; i += 1) {
+            const value = voiceState.frequencies[i] / 255;
+            sum += value * value;
+        }
+        const rms = Math.sqrt(sum / voiceState.frequencies.length);
+        const now = performance.now();
+
+        if (rms > 0.05) {
+            spoke = true;
+            quietSince = 0;
+        } else if (spoke) {
+            if (!quietSince) {
+                quietSince = now;
+            }
+            if (now - quietSince > 1100) {
+                stopRecorder();
+                return;
+            }
+        }
+
+        if (now - started > 30000) {
+            stopRecorder();
+            return;
+        }
+        voiceState.vadRaf = requestAnimationFrame(tick);
+    };
+
+    voiceState.vadRaf = requestAnimationFrame(tick);
+}
+
+async function finishRecording(chunks, mime) {
+    if (!voiceState.open) {
+        return;
+    }
+    const blob = new Blob(chunks, { type: mime });
+    if (!blob.size) {
+        noteHearingProblem();
+        return;
+    }
+
+    setPhase("thinking");
+    try {
+        const text = await transcribeBlob(blob);
+        if (!voiceState.open) {
+            return;
+        }
+        if (!text) {
+            setPhase("listening");
+            showHint("Vicora heard nothing in that clip. Tap the circle and speak again.");
+            scheduleRestart(700);
+            return;
+        }
+        voiceLog("transcribed:", text);
+        handleUserSpeech(text);
+    } catch (error) {
+        voiceLog("transcription failed:", error && error.message);
+        setPhase("error", error.message || "Vicora could not transcribe that. Tap the circle to try again.");
+    }
+}
+
+async function transcribeBlob(blob) {
+    const token = await voiceToken();
+    if (!token) {
+        throw new Error("Please sign in again to use voice mode.");
+    }
+    const form = new FormData();
+    form.append("file", blob, blob.type.includes("mp4") ? "voice.mp4" : "voice.webm");
+    const response = await fetch(`${VOICE_API_URL}/voice/transcribe`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form
+    });
+    if (!response.ok) {
+        let detail = "";
+        try {
+            const body = await response.json();
+            detail = body && body.detail ? String(body.detail) : "";
+        } catch (error) {
+            /* not json */
+        }
+        throw new Error(detail || "Vicora could not transcribe that. Please try again.");
+    }
+    const data = await response.json();
+    return (data && data.text ? String(data.text) : "").trim();
 }
 
 /* ------------------------------------------------------------------ */
 /* speech out                                                          */
 /* ------------------------------------------------------------------ */
 
+let cachedVoices = [];
+let voiceListenerBound = false;
+
+function refreshVoices() {
+    if (!("speechSynthesis" in window)) {
+        return [];
+    }
+    try {
+        cachedVoices = window.speechSynthesis.getVoices() || [];
+    } catch (error) {
+        cachedVoices = [];
+    }
+    if (!voiceListenerBound && "speechSynthesis" in window) {
+        voiceListenerBound = true;
+        window.speechSynthesis.addEventListener?.("voiceschanged", () => {
+            try {
+                cachedVoices = window.speechSynthesis.getVoices() || [];
+            } catch (error) {
+                /* ignore */
+            }
+        });
+    }
+    return cachedVoices;
+}
+
+/** Prefer a natural English voice, fall back to whatever the device has. */
+function pickVoice() {
+    const voices = refreshVoices().filter((voice) => /^en(-|_)?/i.test(voice.lang || ""));
+    if (!voices.length) {
+        return null;
+    }
+    const score = (voice) => {
+        const name = (voice.name || "").toLowerCase();
+        const lang = (voice.lang || "").toLowerCase();
+        let points = 0;
+        if (lang.startsWith("en")) points += 4;
+        if (lang.startsWith("en-us") || lang.startsWith("en_us")) points += 2;
+        if (name.includes("google")) points += 4;
+        if (name.includes("natural") || name.includes("premium") || name.includes("enhanced")) points += 3;
+        if (name.includes("microsoft")) points += 2;
+        if (name.includes("female") || name.includes("aria") || name.includes("zira") || name.includes("samantha")) points += 1;
+        return points;
+    };
+    return voices.sort((a, b) => score(b) - score(a))[0];
+}
+
 function stopSpeaking() {
+    clearTimer("speakWatchdog");
     if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+        try {
+            window.speechSynthesis.cancel();
+        } catch (error) {
+            /* ignore */
+        }
     }
 }
 
+function backToListening(delay = 260) {
+    if (!voiceState.open) {
+        return;
+    }
+    setPhase("listening", "");
+    setTimeout(() => {
+        if (voiceState.open && voiceState.phase === "listening") {
+            startListening();
+        }
+    }, delay);
+}
+
 function speak(text) {
-    if (voiceState.speakerMuted || !text) {
-        setPhase("listening");
-        startListening();
-        return;
-    }
-    if (!("speechSynthesis" in window)) {
-        setPhase("listening");
-        startListening();
-        return;
-    }
-    const clean = String(text)
+    const clean = String(text || "")
         .replace(/```[\s\S]*?```/g, " (code block) ")
         .replace(/[#*_>`]/g, "")
         .replace(/\s+/g, " ")
         .trim();
-    if (!clean) {
-        setPhase("listening");
-        startListening();
+
+    if (voiceState.speakerMuted || !clean || !("speechSynthesis" in window)) {
+        backToListening(120);
         return;
     }
 
@@ -540,28 +984,70 @@ function speak(text) {
     utterance.lang = "en-US";
     utterance.rate = 1.02;
     utterance.pitch = 1;
+    const voice = pickVoice();
+    if (voice) {
+        utterance.voice = voice;
+    }
+
+    let settled = false;
+    const settle = (reason) => {
+        if (settled) {
+            return;
+        }
+        settled = true;
+        clearTimer("speakWatchdog");
+        voiceLog("speech finished:", reason);
+        backToListening();
+    };
 
     utterance.onstart = () => {
+        clearTimer("speakWatchdog");
         setPhase("speaking");
+        // Some browsers never fire onend; this keeps the turn moving.
+        voiceState.speakWatchdog = setTimeout(() => {
+            voiceLog("speech watchdog fired");
+            stopSpeaking();
+            showHint("Audio playback stalled, so here is the reply as text.");
+            settle("watchdog");
+        }, SPEAK_WATCHDOG_MS);
     };
     utterance.onboundary = () => {
         voiceState.speakingKick = Math.min(1, voiceState.speakingKick + 0.35);
     };
-    utterance.onend = () => {
-        if (voiceState.open && voiceState.phase === "speaking") {
-            setPhase("listening");
-            startListening();
-        }
-    };
-    utterance.onerror = () => {
-        if (voiceState.open) {
-            setPhase("listening");
-            startListening();
-        }
+    utterance.onend = () => settle("end");
+    utterance.onerror = (event) => {
+        voiceLog("speech error:", event && event.error);
+        showHint("The device voice failed, so the reply is shown as text.");
+        settle("error");
     };
 
     setPhase("speaking");
-    window.speechSynthesis.speak(utterance);
+    try {
+        // Voices can be empty for the first moment after load.
+        if (!refreshVoices().length) {
+            setTimeout(() => {
+                if (!settled && voiceState.open && voiceState.phase === "speaking") {
+                    const lateVoice = pickVoice();
+                    if (lateVoice) {
+                        utterance.voice = lateVoice;
+                    }
+                }
+            }, 400);
+        }
+        window.speechSynthesis.speak(utterance);
+        voiceState.speakWatchdog = setTimeout(() => {
+            if (!settled && voiceState.phase === "speaking") {
+                voiceLog("speech never started");
+                showHint("The device voice did not start, so the reply is shown as text.");
+                stopSpeaking();
+                settle("never-started");
+            }
+        }, 6000);
+    } catch (error) {
+        voiceLog("speak threw:", error && error.message);
+        showHint("This device could not play the reply aloud, so it is shown as text.");
+        settle("throw");
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -668,10 +1154,25 @@ function buildOverlay() {
     const heard = vEl("p", "voice-heard");
     heard.setAttribute("aria-live", "off");
     stage.append(canvas, heard);
+    stage.addEventListener("click", () => {
+        if (!voiceState.open || voiceState.muted) {
+            return;
+        }
+        if (voiceState.phase === "error" || voiceState.phase === "idle") {
+            setPhase("listening", "");
+        }
+        if (voiceState.phase === "listening" && !voiceState.listening && !voiceState.recording) {
+            startListening();
+        }
+    });
 
     const status = vEl("p", "voice-status", PHASE_LABEL.idle);
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
+
+    const hint = vEl("p", "voice-hint");
+    hint.hidden = true;
+    hint.setAttribute("aria-live", "polite");
 
     const controls = vEl("div", "voice-controls");
     const micButton = vEl("button", "voice-control");
@@ -706,7 +1207,7 @@ function buildOverlay() {
     const transcriptList = vEl("div", "voice-transcript-list");
     transcript.appendChild(transcriptList);
 
-    root.append(top, stage, status, controls, transcript);
+    root.append(top, stage, status, hint, controls, transcript);
 
     closeButton.addEventListener("click", closeVoiceMode);
     micButton.addEventListener("click", () => {
@@ -745,7 +1246,7 @@ function buildOverlay() {
 
     document.body.appendChild(root);
 
-    voiceNodes = { root, canvas, status, heard, transcriptList, transcript, micButton, speakerButton, transcriptButton };
+    voiceNodes = { root, canvas, status, hint, heard, transcriptList, transcript, micButton, speakerButton, transcriptButton };
     return voiceNodes;
 }
 
@@ -789,21 +1290,42 @@ async function openVoiceMode() {
     startOrb();
     paintPhase();
 
-    if (!SpeechRecognitionImpl) {
-        setPhase("error", "Voice mode needs Chrome, Edge or Safari.");
-        return;
+    voiceState.hearingProblems = 0;
+    voiceState.engine = "speech";
+    try {
+        if (localStorage.getItem("vicora.voiceEngine") === "recorder") {
+            voiceState.engine = "recorder";
+        }
+    } catch (error) {
+        /* private mode */
     }
 
     await startMeter();
     if (window.vicCurrentConversationId) {
         voiceState.conversationId = window.vicCurrentConversationId;
     }
+    showHint("");
+    setPhase("listening");
     startListening();
     voiceNodes.micButton.focus({ preventScroll: true });
 }
 
 function closeVoiceMode() {
     voiceState.open = false;
+    clearTimer("restartTimer");
+    clearTimer("startWatchdog");
+    clearTimer("speakWatchdog");
+    cancelAnimationFrame(voiceState.vadRaf);
+    voiceState.vadRaf = 0;
+    if (voiceState.recorder && voiceState.recording) {
+        try {
+            voiceState.recorder.stop();
+        } catch (error) {
+            /* already stopped */
+        }
+    }
+    voiceState.recording = false;
+    voiceState.recorder = null;
     stopListening();
     stopSpeaking();
     stopMeter();
@@ -850,4 +1372,53 @@ window.vicVoice = {
     close: closeVoiceMode,
     state: voiceState,
     supportsSpeech: Boolean(SpeechRecognitionImpl)
+};
+
+/* ------------------------------------------------------------------ */
+/* diagnostics                                                         */
+/* ------------------------------------------------------------------ */
+
+window.vicoraVoice = {
+    diagnose() {
+        const stream = voiceState.stream;
+        return {
+            open: voiceState.open,
+            phase: voiceState.phase,
+            engine: voiceState.engine,
+            listening: voiceState.listening,
+            recording: voiceState.recording,
+            muted: voiceState.muted,
+            speakerMuted: voiceState.speakerMuted,
+            speechRecognition: Boolean(SpeechRecognitionImpl),
+            speechSynthesis: "speechSynthesis" in window,
+            voices: refreshVoices().length,
+            microphoneTracks: stream
+                ? stream.getAudioTracks().map((track) => track.readyState)
+                : [],
+            hearingProblems: voiceState.hearingProblems,
+            hint: voiceState.hintText,
+            turns: voiceState.turns.length,
+            conversationId: voiceState.conversationId || window.vicCurrentConversationId || null
+        };
+    },
+    retry() {
+        if (!voiceState.open) {
+            return "Voice mode is closed.";
+        }
+        setPhase("listening", "");
+        startListening();
+        return "Listening again.";
+    },
+    useServerTranscription() {
+        switchEngine("recorder", "Server transcription is on.");
+        return "Recorder engine on.";
+    },
+    open() {
+        openVoiceMode();
+        return "Opening voice mode.";
+    },
+    close() {
+        closeVoiceMode();
+        return "Voice mode closed.";
+    }
 };

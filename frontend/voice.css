@@ -324,3 +324,27 @@ body.voice-open {
     object-fit: cover;
     box-shadow: 0 0 0 1px rgba(46, 123, 255, 0.4), 0 4px 14px rgba(20, 70, 180, 0.4);
 }
+
+.voice-hint {
+    margin: -6px auto 0;
+    max-width: 34ch;
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.voice-hint {
+    margin: 0.35rem auto 0;
+    max-width: 30rem;
+    padding: 0 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--text-soft);
+    opacity: 0.95;
+}
+
+.voice-hint[hidden] {
+    display: none;
+}
