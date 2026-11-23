@@ -449,6 +449,19 @@ function setConversationId(value) {
     window.vicCurrentConversationId = value;
 }
 
+// Voice mode creates a thread when none is open; the text chat adopts it so
+// both stay in the same conversation.
+window.addEventListener("vic:conversation", (event) => {
+    const id = event && event.detail ? event.detail.id : null;
+    if (!id || id === conversationId) {
+        return;
+    }
+    setConversationId(id);
+    if (typeof loadConversationHistory === "function") {
+        Promise.resolve(loadConversationHistory()).catch(() => {});
+    }
+});
+
 
 let conversationLoadSequence = 0;
 
