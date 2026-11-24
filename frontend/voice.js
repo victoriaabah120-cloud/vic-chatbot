@@ -28,6 +28,9 @@ const PHASE_LABEL = {
 };
 
 const voiceState = {
+    asking: false,
+    speechPrimed: false,
+    microphoneBlocked: false,
     open: false,
     phase: "idle",
     muted: false,
@@ -344,12 +347,17 @@ async function startMeter() {
         return;
     }
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await requestMicrophone();
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) {
             return;
         }
         const context = new AudioCtx();
+        // Android starts this context suspended until a gesture; silence would
+        // stop the recorder detecting the end of speech.
+        if (context.state === "suspended" && context.resume) {
+            context.resume().catch(() => {});
+        }
         const source = context.createMediaStreamSource(stream);
         const analyser = context.createAnalyser();
         analyser.fftSize = 512;
@@ -406,9 +414,11 @@ function paintPhase() {
     if (!voiceNodes) {
         return;
     }
-    const label = voiceState.errorText && voiceState.phase === "error"
-        ? voiceState.errorText
-        : PHASE_LABEL[voiceState.phase] || "";
+    const label = voiceState.asking && voiceState.phase === "listening"
+        ? "Allow microphone access"
+        : voiceState.errorText && voiceState.phase === "error"
+            ? voiceState.errorText
+            : PHASE_LABEL[voiceState.phase] || "";
     voiceNodes.status.textContent = label;
     voiceNodes.root.dataset.phase = voiceState.phase;
     voiceNodes.status.setAttribute("aria-label", label);
@@ -433,6 +443,9 @@ function setPhase(phase, errorText = "") {
 const RESTART_DELAY = 350;
 const HEARING_HINT = "Vicora can't hear you yet. Tap the circle to try again.";
 const SPEAK_WATCHDOG_MS = 25000;
+// A microphone prompt hidden behind the full screen overlay must never leave
+// the screen on Listening: ask, wait, then say what happened.
+const MIC_GRANT_TIMEOUT_MS = 12000;
 
 function voiceLog(...args) {
     if (window.__VICORA_VOICE_DEBUG__ === false) {
@@ -724,16 +737,81 @@ function recorderMime() {
     return "";
 }
 
-async function ensureStream() {
+let pendingMicrophone = null;
+
+function microphoneTimeoutError() {
+    const error = new Error("Vicora is still waiting for microphone access. Allow it in your browser, then tap the circle.");
+    error.name = "MicrophoneTimeout";
+    return error;
+}
+
+/**
+ * One shared microphone request. A prompt the user has not answered would
+ * otherwise wait forever behind the overlay, so it times out with a message
+ * and the status says what is being asked for.
+ */
+function requestMicrophone() {
     if (voiceState.stream && voiceState.stream.getAudioTracks().some((track) => track.readyState === "live")) {
-        return voiceState.stream;
+        return Promise.resolve(voiceState.stream);
+    }
+    if (pendingMicrophone) {
+        return pendingMicrophone;
+    }
+    if (voiceState.microphoneBlocked) {
+        return Promise.reject(microphoneTimeoutError());
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("This browser cannot reach a microphone.");
+        const error = new Error("This browser cannot reach a microphone.");
+        error.name = "MicrophoneUnsupported";
+        return Promise.reject(error);
     }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    voiceState.stream = stream;
-    return stream;
+
+    voiceState.asking = true;
+    paintPhase();
+    showHint("Allow microphone access so Vicora can hear you.");
+
+    pendingMicrophone = new Promise((resolve, reject) => {
+        let settled = false;
+        const finish = () => {
+            voiceState.asking = false;
+            pendingMicrophone = null;
+            paintPhase();
+        };
+        const timer = setTimeout(() => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            voiceState.microphoneBlocked = true;
+            finish();
+            reject(microphoneTimeoutError());
+        }, MIC_GRANT_TIMEOUT_MS);
+
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            clearTimeout(timer);
+            if (settled) {
+                stream.getTracks().forEach((track) => track.stop());
+                return;
+            }
+            settled = true;
+            voiceState.stream = stream;
+            finish();
+            resolve(stream);
+        }).catch((error) => {
+            clearTimeout(timer);
+            if (settled) {
+                return;
+            }
+            settled = true;
+            finish();
+            reject(error);
+        });
+    });
+    return pendingMicrophone;
+}
+
+async function ensureStream() {
+    return requestMicrophone();
 }
 
 async function startRecorder() {
@@ -747,10 +825,20 @@ async function startRecorder() {
 
     voiceState.recorderStarting = true;
     try {
+        const stream = await requestMicrophone();
         await startMeter();
-        const stream = await ensureStream();
-        if (!voiceState.open || voiceState.phase !== "listening") {
+        if (!voiceState.open) {
             voiceState.recorderStarting = false;
+            return;
+        }
+        if (voiceState.phase !== "listening") {
+            // The phase moved while the microphone was opening; come back to it
+            // instead of leaving the screen idle.
+            voiceState.recorderStarting = false;
+            if (!voiceState.muted && voiceState.phase === "idle") {
+                setPhase("listening");
+                scheduleRestart(400);
+            }
             return;
         }
         const mime = recorderMime();
@@ -783,6 +871,10 @@ async function startRecorder() {
             setPhase("error", "Microphone permission is blocked. Allow it in your browser, then tap the circle.");
         } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
             setPhase("error", "No microphone was found. Check that one is connected.");
+        } else if (name === "MicrophoneTimeout") {
+            setPhase("error", error.message);
+        } else if (name === "NotReadableError" || name === "TrackStartError") {
+            setPhase("error", "Another app is using the microphone. Close it, then tap the circle.");
         } else {
             setPhase("error", "Vicora could not start recording. Tap the circle to try again.");
         }
@@ -968,6 +1060,7 @@ function pickVoice() {
 
 function stopSpeaking() {
     clearTimer("speakWatchdog");
+    clearTimer("speakStartRetry");
     if ("speechSynthesis" in window) {
         try {
             window.speechSynthesis.cancel();
@@ -1011,17 +1104,21 @@ function speak(text) {
     }
 
     let settled = false;
+    let started = false;
     const settle = (reason) => {
         if (settled) {
             return;
         }
         settled = true;
         clearTimer("speakWatchdog");
+        clearTimer("speakStartRetry");
         voiceLog("speech finished:", reason);
         backToListening();
     };
 
     utterance.onstart = () => {
+        started = true;
+        clearTimer("speakStartRetry");
         clearTimer("speakWatchdog");
         setPhase("speaking");
         // Some browsers never fire onend; this keeps the turn moving.
@@ -1056,6 +1153,40 @@ function speak(text) {
             }, 400);
         }
         window.speechSynthesis.speak(utterance);
+        // Some Android builds ignore the first utterance after network work;
+        // one clean retry is what actually gets audio playing there.
+        clearTimer("speakStartRetry");
+        voiceState.speakStartRetry = setTimeout(() => {
+            voiceState.speakStartRetry = null;
+            if (settled || started || !voiceState.open || voiceState.phase !== "speaking") {
+                return;
+            }
+            voiceLog("speech did not start, retrying once");
+            try {
+                window.speechSynthesis.cancel();
+                const retry = new SpeechSynthesisUtterance(utterance.text);
+                retry.lang = utterance.lang;
+                retry.rate = utterance.rate;
+                retry.pitch = utterance.pitch;
+                if (utterance.voice) {
+                    retry.voice = utterance.voice;
+                }
+                retry.onstart = () => {
+                    started = true;
+                    clearTimer("speakStartRetry");
+                };
+                retry.onend = () => settle("retry-end");
+                retry.onerror = (event) => {
+                    voiceLog("retry speech error:", event && event.error);
+                    showHint("The device voice failed, so the reply is shown as text.");
+                    settle("retry-error");
+                };
+                window.speechSynthesis.speak(retry);
+            } catch (error) {
+                voiceLog("retry speak threw:", error && error.message);
+                settle("retry-throw");
+            }
+        }, 1200);
         voiceState.speakWatchdog = setTimeout(() => {
             if (!settled && voiceState.phase === "speaking") {
                 voiceLog("speech never started");
@@ -1180,6 +1311,7 @@ function buildOverlay() {
             return;
         }
         if (voiceState.phase === "error" || voiceState.phase === "idle") {
+            voiceState.microphoneBlocked = false;
             setPhase("listening", "");
         }
         if (voiceState.phase === "listening" && !voiceState.listening && !voiceState.recording) {
@@ -1357,10 +1489,27 @@ function buildLauncher() {
     button.addEventListener("click", openVoiceMode);
 }
 
+/** Mobile browsers only allow speech after a gesture; this unlocks it early. */
+function primeSpeech() {
+    if (voiceState.speechPrimed || !("speechSynthesis" in window)) {
+        return;
+    }
+    voiceState.speechPrimed = true;
+    try {
+        const utterance = new SpeechSynthesisUtterance(" ");
+        utterance.volume = 0;
+        window.speechSynthesis.speak(utterance);
+    } catch (error) {
+        /* nothing to unlock */
+    }
+}
+
 async function openVoiceMode() {
     if (voiceState.open) {
         return;
     }
+    primeSpeech();
+    voiceState.microphoneBlocked = false;
     if (!voiceNodes) {
         buildOverlay();
     }
@@ -1383,9 +1532,6 @@ async function openVoiceMode() {
         /* private mode */
     }
 
-    if (voiceState.engine === "recorder") {
-        await startMeter();
-    }
     if (window.vicCurrentConversationId) {
         voiceState.conversationId = window.vicCurrentConversationId;
     }
