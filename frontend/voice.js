@@ -490,6 +490,11 @@ function switchEngine(next, message) {
         /* private mode */
     }
     stopListening();
+    if (next === "recorder") {
+        startMeter();
+    } else {
+        stopMeter();
+    }
     showHint(message || "");
     if (voiceState.open && voiceState.phase === "listening") {
         setTimeout(() => {
@@ -589,7 +594,16 @@ function ensureRecognition() {
         }
 
         if (code === "audio-capture") {
-            setPhase("error", "No microphone was found. Check that one is connected.");
+            // Another capture may still hold the microphone; release it and retry once.
+            stopMeter();
+            voiceState.hearingProblems += 1;
+            if (voiceState.hearingProblems <= 2) {
+                setPhase("listening", "");
+                showHint("Reconnecting to the microphone…");
+                scheduleRestart(700);
+                return;
+            }
+            setPhase("error", "Vicora could not reach the microphone. Check that no other app is using it.");
             return;
         }
 
@@ -733,6 +747,7 @@ async function startRecorder() {
 
     voiceState.recorderStarting = true;
     try {
+        await startMeter();
         const stream = await ensureStream();
         if (!voiceState.open || voiceState.phase !== "listening") {
             voiceState.recorderStarting = false;
@@ -827,6 +842,12 @@ function watchForSilence() {
                 stopRecorder();
                 return;
             }
+        }
+
+        // Nothing said yet: stop early instead of holding a 30 second clip.
+        if (!spoke && now - started > 8000) {
+            stopRecorder();
+            return;
         }
 
         if (now - started > 30000) {
@@ -1207,6 +1228,26 @@ function buildOverlay() {
     const transcriptList = vEl("div", "voice-transcript-list");
     transcript.appendChild(transcriptList);
 
+    // A real input, so the conversation can continue by typing in Voice Mode.
+    const compose = vEl("form", "voice-compose");
+    compose.setAttribute("novalidate", "");
+    const input = document.createElement("textarea");
+    input.className = "voice-input";
+    input.id = "voiceTextInput";
+    input.rows = 1;
+    input.placeholder = "Type a message";
+    input.setAttribute("aria-label", "Message Vicora");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocapitalize", "sentences");
+    input.setAttribute("enterkeyhint", "send");
+    input.setAttribute("inputmode", "text");
+    const sendButton = vEl("button", "voice-send");
+    sendButton.type = "submit";
+    sendButton.setAttribute("aria-label", "Send message");
+    sendButton.append(vIcon(["M12 19V5", "M6 11l6-6 6 6"]));
+    compose.append(input, sendButton);
+    transcript.appendChild(compose);
+
     root.append(top, stage, status, hint, controls, transcript);
 
     closeButton.addEventListener("click", closeVoiceMode);
@@ -1242,11 +1283,53 @@ function buildOverlay() {
         transcript.hidden = !voiceState.transcriptOpen;
         transcriptButton.setAttribute("aria-pressed", String(voiceState.transcriptOpen));
         transcriptButton.classList.toggle("is-active", voiceState.transcriptOpen);
+        if (voiceState.transcriptOpen) {
+            // Focus inside the tap, so Android opens the keyboard.
+            input.focus({ preventScroll: true });
+            input.setSelectionRange(input.value.length, input.value.length);
+            transcriptList.scrollTop = transcriptList.scrollHeight;
+        }
+    });
+
+    const sendTypedMessage = () => {
+        const text = input.value.trim();
+        if (!text) {
+            input.focus({ preventScroll: true });
+            return;
+        }
+        input.value = "";
+        input.style.height = "";
+        showHint("");
+        stopSpeaking();
+        stopListening();
+        handleUserSpeech(text);
+    };
+
+    compose.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sendTypedMessage();
+    });
+
+    input.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" || event.shiftKey) {
+            return;
+        }
+        // A physical keyboard sends; a touch keyboard adds a line.
+        const touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+        if (!touch) {
+            event.preventDefault();
+            sendTypedMessage();
+        }
+    });
+
+    input.addEventListener("input", () => {
+        input.style.height = "auto";
+        input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
     });
 
     document.body.appendChild(root);
 
-    voiceNodes = { root, canvas, status, hint, heard, transcriptList, transcript, micButton, speakerButton, transcriptButton };
+    voiceNodes = { root, canvas, status, hint, heard, transcriptList, transcript, compose, input, sendButton, micButton, speakerButton, transcriptButton };
     return voiceNodes;
 }
 
@@ -1300,7 +1383,9 @@ async function openVoiceMode() {
         /* private mode */
     }
 
-    await startMeter();
+    if (voiceState.engine === "recorder") {
+        await startMeter();
+    }
     if (window.vicCurrentConversationId) {
         voiceState.conversationId = window.vicCurrentConversationId;
     }

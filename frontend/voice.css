@@ -338,3 +338,86 @@ body.voice-open {
 .voice-hint[hidden] {
     display: none;
 }
+
+/* typing inside voice mode */
+.voice-compose {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.voice-input {
+    flex: 1 1 auto;
+    min-height: 42px;
+    max-height: 96px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 16px; /* keeps Android from zooming on focus */
+    line-height: 1.35;
+    resize: none;
+    overflow-y: auto;
+    touch-action: manipulation;
+}
+
+.voice-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+.voice-input::placeholder {
+    color: var(--text-soft);
+}
+
+.voice-send {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    background: var(--accent);
+    color: #FFFFFF;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.voice-send svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.voice-send:active {
+    transform: scale(0.96);
+}
+
+@media (max-width: 620px) {
+    .voice-transcript {
+        max-height: min(46vh, 340px);
+    }
+
+    .voice-compose {
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (max-height: 620px) {
+    .voice-orb {
+        width: min(58vw, 34vh, 260px);
+        height: min(58vw, 34vh, 260px);
+    }
+}
