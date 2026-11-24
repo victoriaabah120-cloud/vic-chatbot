@@ -79,6 +79,13 @@ client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
+print(
+    "GROQ key configured:",
+    bool(os.getenv("GROQ_API_KEY")),
+    "length:",
+    len(os.getenv("GROQ_API_KEY") or ""),
+)
+
 
 @app.get("/")
 def home():
@@ -584,6 +591,32 @@ def list_conversation_messages(
     }
 
 
+def _describe_model_failure(error: Exception) -> str:
+    """Turn a provider failure into the sentence that actually helps."""
+    text = str(error)
+    low = text.lower()
+    if "invalid_api_key" in low or "invalid api key" in low or "401" in low or "unauthorized" in low:
+        return (
+            "Vicora's AI provider rejected the server's API key. "
+            "Update GROQ_API_KEY on Render, then redeploy."
+        )
+    if "rate limit" in low or "429" in low or "quota" in low:
+        return "Vicora has reached the AI provider's rate limit. Wait a minute, then try again."
+    if "model_not_found" in low or "does not exist" in low or "decommission" in low or "not found" in low:
+        return (
+            "None of Vicora's configured models are available on the AI provider. "
+            "Set GROQ_MODEL on Render to a current model."
+        )
+    if "timeout" in low or "timed out" in low or "connect" in low or "network" in low:
+        return "Vicora could not connect to the AI provider. Try again in a moment."
+    snippet = " ".join(text.split())[:110]
+    return (
+        "Vicora could not reach the language model just now. "
+        f"Provider said: {snippet}" if snippet
+        else "Vicora could not reach the language model just now. Please try again in a moment."
+    )
+
+
 def _chat_model_chain() -> list[str]:
     """Every model worth trying, primary first, without duplicates."""
     chain: list[str] = []
@@ -793,10 +826,7 @@ Plain-text and accuracy requirements:
     if last_error is not None:
         raise HTTPException(
             status_code=502,
-            detail=(
-                "Vicora could not reach the language model just now. "
-                "Please try again in a moment."
-            ),
+            detail=_describe_model_failure(last_error),
         ) from last_error
 
     assistant_message = {
