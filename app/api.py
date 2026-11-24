@@ -584,6 +584,26 @@ def list_conversation_messages(
     }
 
 
+def _chat_model_chain() -> list[str]:
+    """Every model worth trying, primary first, without duplicates."""
+    chain: list[str] = []
+    for name in (
+        CHAT_MODEL,
+        CHAT_FALLBACK_MODEL,
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+    ):
+        if name and name not in chain:
+            chain.append(name)
+    return chain
+
+
+def _reasoning_rejected(error: Exception) -> bool:
+    """True when the provider refused the reasoning parameter itself."""
+    text = str(error).lower()
+    return "reasoning" in text or "unsupported parameter" in text
+
+
 @app.post("/chat")
 def chat(
     request: ChatRequest,
@@ -743,33 +763,40 @@ Plain-text and accuracy requirements:
                 *history[-12:]
     ]
 
-    # The primary model is tried first; if the provider rejects it (retired,
-    # renamed or rate limited) a backup model answers so chat keeps working.
+    # The models are tried in order, and each one is tried with and without the
+    # reasoning parameter: Groq rejects that parameter for models that do not
+    # support it, which would otherwise kill every fallback.
     answer = ""
     last_error = None
-    for model_name in [CHAT_MODEL, CHAT_FALLBACK_MODEL]:
-        if not model_name:
-            continue
-        try:
-            answer = run_chat_with_plugins(
-                client=client,
-                model=model_name,
-                temperature=0.5,
-                reasoning_effort="low",
-                supabase=supabase,
-                user_id=user.id,
-                messages=chat_messages,
-            )
-            last_error = None
+    for model_name in _chat_model_chain():
+        for effort in ("low", None):
+            try:
+                answer = run_chat_with_plugins(
+                    client=client,
+                    model=model_name,
+                    temperature=0.5,
+                    reasoning_effort=effort,
+                    supabase=supabase,
+                    user_id=user.id,
+                    messages=chat_messages,
+                )
+                last_error = None
+                break
+            except Exception as error:  # noqa: BLE001
+                print(f"CHAT ERROR ({model_name}, effort={effort}):", repr(error))
+                last_error = error
+                if not _reasoning_rejected(error):
+                    break
+        if last_error is None:
             break
-        except Exception as error:  # noqa: BLE001
-            print(f"CHAT ERROR ({model_name}):", repr(error))
-            last_error = error
 
     if last_error is not None:
         raise HTTPException(
-            status_code=500,
-            detail="Something went wrong while generating the response."
+            status_code=502,
+            detail=(
+                "Vicora could not reach the language model just now. "
+                "Please try again in a moment."
+            ),
         ) from last_error
 
     assistant_message = {

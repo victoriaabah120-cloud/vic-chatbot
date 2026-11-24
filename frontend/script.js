@@ -1695,7 +1695,10 @@ async function sendMessage() {
                 }
             }
             const friendlyError = new Error(friendlyMessage);
-            friendlyError.friendly = isFriendly;
+            // Whatever the server said is what the person sees; only a bare
+            // response with no sentence falls back to the generic apology.
+            friendlyError.friendly =
+                isFriendly || friendlyMessage !== "The chatbot server returned an error.";
             throw friendlyError;
         }
 
